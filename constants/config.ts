@@ -4,6 +4,8 @@ export const DEFAULT_CONFIG: SlideshowConfig = {
   photoDisplaySeconds: 10,
   videoDisplaySeconds: 30,
   transitionDuration: 1000,
+  enableKenBurns: true,
+  kenBurnsDuration: 5000,
 };
 
 export const SUPPORTED_PHOTO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];

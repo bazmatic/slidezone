@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { MediaFile, MediaType } from '@/types/media';
 import { SlideshowConfig } from '@/types/media';
+import KenBurnsEffect, { KenBurnsType } from './KenBurnsEffect';
 
 interface MediaDisplayProps {
   media: MediaFile;
@@ -79,16 +80,31 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config }
 
   const renderMedia = () => {
     if (media.type === MediaType.PHOTO) {
-      return (
-        <img
-          src={media.path}
-          alt={media.name}
-          className="w-full h-full object-contain"
-          style={{
-            transition: `opacity ${config.transitionDuration || 1000}ms ease-in-out`,
-          }}
-        />
-      );
+      const enableKenBurns = config.enableKenBurns !== false; // Default to true
+      const kenBurnsDuration = config.kenBurnsDuration || 5000;
+      
+      if (enableKenBurns) {
+        return (
+          <KenBurnsEffect
+            src={media.path}
+            alt={media.name}
+            duration={kenBurnsDuration}
+            effectType={KenBurnsType.ZOOM_IN}
+            className="w-full h-full"
+          />
+        );
+      } else {
+        return (
+          <img
+            src={media.path}
+            alt={media.name}
+            className="w-full h-full object-contain"
+            style={{
+              transition: `opacity ${config.transitionDuration || 1000}ms ease-in-out`,
+            }}
+          />
+        );
+      }
     } else {
       return (
         <video

@@ -8,6 +8,10 @@ A simple Next.js application that displays photos and videos as a slideshow in r
 - **Configurable Timing**: 
   - Photos display for a set number of seconds (default: 5 seconds)
   - Videos loop until they reach a configurable duration (default: 10 seconds)
+- **Ken Burns Effect**: Cinematic zoom and pan effects for photos
+  - Multiple effect types: zoom in/out, pan in all directions, combined zoom-pan
+  - Configurable duration and intensity
+  - Can be enabled/disabled per user preference
 - **Fullscreen Display**: Optimized for fullscreen viewing
 - **Keyboard Controls**:
   - `Space`: Play/Pause slideshow
@@ -52,6 +56,8 @@ A simple Next.js application that displays photos and videos as a slideshow in r
        photoDisplaySeconds: 5,    // How long photos display
        videoDisplaySeconds: 10,   // Max duration for videos
        transitionDuration: 1000,  // Transition animation duration
+       enableKenBurns: true,      // Enable Ken Burns effect for photos
+       kenBurnsDuration: 5000,    // Ken Burns effect duration
      };
      ```
 
@@ -113,6 +119,8 @@ export const DEFAULT_CONFIG: SlideshowConfig = {
   photoDisplaySeconds: 8,    // Photos display for 8 seconds
   videoDisplaySeconds: 15,   // Videos max 15 seconds
   transitionDuration: 500,   // Faster transitions
+  enableKenBurns: true,      // Enable Ken Burns effect
+  kenBurnsDuration: 4000,   // Ken Burns duration
 };
 ```
 
@@ -122,6 +130,23 @@ Update the supported extensions in `constants/config.ts`:
 ```typescript
 export const SUPPORTED_PHOTO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff'];
 export const SUPPORTED_VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv'];
+```
+
+### Ken Burns Effects
+The Ken Burns effect adds cinematic movement to still photos:
+
+- **Zoom In**: Gradually zooms into the image
+- **Zoom Out**: Gradually zooms out from the image
+- **Pan Left/Right/Up/Down**: Moves the view in different directions
+- **Zoom Pan**: Combines zoom and pan for dynamic movement
+- **Random Selection**: Each photo gets a random effect for variety
+
+Configure the effects in the settings panel or in `constants/config.ts`:
+```typescript
+export const DEFAULT_CONFIG: SlideshowConfig = {
+  enableKenBurns: true,      // Enable/disable Ken Burns effects
+  kenBurnsDuration: 5000,    // Duration of the effect in milliseconds
+};
 ```
 
 ### Styling

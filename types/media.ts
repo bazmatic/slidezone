@@ -15,6 +15,8 @@ export interface SlideshowConfig {
   photoDisplaySeconds: number;
   videoDisplaySeconds: number;
   transitionDuration: number;
+  enableKenBurns: boolean;
+  kenBurnsDuration: number;
 }
 
 export interface SlideshowState {
