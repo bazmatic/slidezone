@@ -91,6 +91,31 @@ const Slideshow: React.FC<SlideshowProps> = ({
     }));
   }, [shuffledFiles, config]);
 
+  const openInFinder = useCallback(async () => {
+    if (!state.currentMedia) return;
+
+    try {
+      // Extract filename from the path (remove /media/ prefix)
+      const filename = state.currentMedia.path.replace('/media/', '');
+      
+      const response = await fetch('/api/open-in-finder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filename }),
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        console.error('Failed to open file in Finder:', data.error);
+      }
+    } catch (error) {
+      console.error('Error opening file in Finder:', error);
+    }
+  }, [state.currentMedia]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -112,12 +137,17 @@ const Slideshow: React.FC<SlideshowProps> = ({
           event.preventDefault();
           shuffle();
           break;
+        case 'f':
+        case 'F':
+          event.preventDefault();
+          openInFinder();
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [togglePlayPause, previousSlide, nextSlide, shuffle]);
+  }, [togglePlayPause, previousSlide, nextSlide, shuffle, openInFinder]);
 
   // Timer effect for photos
   useEffect(() => {
@@ -163,6 +193,8 @@ const Slideshow: React.FC<SlideshowProps> = ({
         onNext={nextSlide}
         onPrevious={previousSlide}
         onShuffle={shuffle}
+        onSettings={() => {}} // TODO: Add settings functionality
+        onOpenInFinder={openInFinder}
         currentIndex={state.currentIndex}
         totalFiles={shuffledFiles.length}
         timeRemaining={state.timeRemaining}
