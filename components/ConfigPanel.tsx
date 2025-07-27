@@ -1,0 +1,120 @@
+'use client';
+
+import React, { useState } from 'react';
+import { SlideshowConfig } from '@/types/media';
+
+interface ConfigPanelProps {
+  config: SlideshowConfig;
+  onConfigChange: (config: SlideshowConfig) => void;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const ConfigPanel: React.FC<ConfigPanelProps> = ({
+  config,
+  onConfigChange,
+  isOpen,
+  onClose,
+}) => {
+  const [localConfig, setLocalConfig] = useState<SlideshowConfig>(config);
+
+  const handleSave = () => {
+    onConfigChange(localConfig);
+    onClose();
+  };
+
+  const handleReset = () => {
+    setLocalConfig(config);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-white">Slideshow Settings</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Photo Display Time (seconds)
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="60"
+              value={localConfig.photoDisplaySeconds}
+              onChange={(e) => setLocalConfig(prev => ({
+                ...prev,
+                photoDisplaySeconds: parseInt(e.target.value) || 5
+              }))}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Video Display Time (seconds)
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="300"
+              value={localConfig.videoDisplaySeconds}
+              onChange={(e) => setLocalConfig(prev => ({
+                ...prev,
+                videoDisplaySeconds: parseInt(e.target.value) || 10
+              }))}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Transition Duration (milliseconds)
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="3000"
+              step="100"
+              value={localConfig.transitionDuration}
+              onChange={(e) => setLocalConfig(prev => ({
+                ...prev,
+                transitionDuration: parseInt(e.target.value) || 1000
+              }))}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-3 mt-6">
+          <button
+            onClick={handleReset}
+            className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+          >
+            Reset
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ConfigPanel; 
