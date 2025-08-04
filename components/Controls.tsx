@@ -15,6 +15,7 @@ interface ControlsProps {
   totalFiles: number;
   timeRemaining: number;
   mediaType: MediaType;
+  isShuffled?: boolean;
 }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -29,27 +30,28 @@ const Controls: React.FC<ControlsProps> = ({
   totalFiles,
   timeRemaining,
   mediaType,
+  isShuffled = false,
 }) => {
   return (
-    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-4">
-      <div className="flex items-center justify-between max-w-4xl mx-auto">
+    <div className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-75 text-white p-4 rounded-r-lg">
+      <div className="flex flex-col items-center space-y-4">
         {/* Progress and Info */}
-        <div className="flex items-center space-x-4">
-          <span className="text-sm">
+        <div className="flex flex-col items-center space-y-2 text-center">
+          <span className="text-sm font-medium">
             {currentIndex + 1} / {totalFiles}
           </span>
           {mediaType === MediaType.PHOTO && (
             <span className="text-sm">
-              {timeRemaining}s remaining
+              {timeRemaining}s
             </span>
           )}
-          <span className="text-sm capitalize">
+          <span className="text-xs capitalize text-gray-300">
             {mediaType}
           </span>
         </div>
 
         {/* Control Buttons */}
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col items-center space-y-2">
           <button
             onClick={onPrevious}
             className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all"
@@ -86,10 +88,16 @@ const Controls: React.FC<ControlsProps> = ({
             </svg>
           </button>
 
+          <div className="w-8 h-px bg-white bg-opacity-30"></div>
+
           <button
             onClick={onShuffle}
-            className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all"
-            title="Shuffle"
+            className={`p-2 rounded-full transition-all ${
+              isShuffled 
+                ? 'bg-blue-500 bg-opacity-80 hover:bg-opacity-90' 
+                : 'bg-white bg-opacity-20 hover:bg-opacity-30'
+            }`}
+            title={isShuffled ? 'Shuffle (On)' : 'Shuffle (Off)'}
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
@@ -118,7 +126,7 @@ const Controls: React.FC<ControlsProps> = ({
         </div>
 
         {/* Keyboard Shortcuts Info */}
-        <div className="text-xs text-gray-400">
+        <div className="text-xs text-gray-400 text-center">
           <div>Space: Play/Pause</div>
           <div>← →: Navigate</div>
           <div>S: Shuffle</div>

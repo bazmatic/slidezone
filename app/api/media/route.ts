@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readdir } from 'fs/promises';
+import { readdir, stat } from 'fs/promises';
 import { join } from 'path';
-import { processMediaFiles } from '@/utils/mediaLoader';
+import { getMediaTypeFromExtension } from '@/utils/mediaLoader';
 
 export async function GET() {
   try {
@@ -16,8 +16,39 @@ export async function GET() {
       return extension && !file.startsWith('.') && file !== 'README.md';
     });
     
-    // Process the files to get media information
-    const processedFiles = processMediaFiles(mediaFiles);
+    // Get file stats for modification dates
+    const filesWithStats = await Promise.all(
+      mediaFiles.map(async (file) => {
+        const filePath = join(mediaDir, file);
+        const stats = await stat(filePath);
+        return {
+          name: file,
+          mtime: stats.mtime
+        };
+      })
+    );
+    
+    // Sort by modification date (newest first)
+    filesWithStats.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+    
+    // Process the files to get media information with modification dates
+    const processedFiles = filesWithStats.map((file, index) => {
+      const extension = file.name.substring(file.name.lastIndexOf('.'));
+      const mediaType = getMediaTypeFromExtension(extension);
+      
+      if (!mediaType) {
+        return null;
+      }
+      
+      return {
+        id: `file-${index}`,
+        name: file.name.substring(0, file.name.lastIndexOf('.')),
+        path: `/media/${file.name}`,
+        type: mediaType,
+        extension,
+        mtime: file.mtime,
+      };
+    }).filter((file): file is any => file !== null);
     
     return NextResponse.json({
       success: true,

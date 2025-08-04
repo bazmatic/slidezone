@@ -23,16 +23,18 @@ const Slideshow: React.FC<SlideshowProps> = ({
   });
 
   const [shuffledFiles, setShuffledFiles] = useState<MediaFile[]>([]);
+  const [isShuffled, setIsShuffled] = useState<boolean>(false);
 
-  // Shuffle media files on mount and when files change
+  // Initialize media files on mount and when files change
   useEffect(() => {
-    const shuffled = [...mediaFiles].sort(() => Math.random() - 0.5);
-    setShuffledFiles(shuffled);
+    // Start with files in order (by date modified, newest first)
+    setShuffledFiles([...mediaFiles]);
+    setIsShuffled(false);
     setState(prev => ({
       ...prev,
       currentIndex: 0,
-      currentMedia: shuffled[0] || null,
-      timeRemaining: shuffled[0]?.type === MediaType.PHOTO 
+      currentMedia: mediaFiles[0] || null,
+      timeRemaining: mediaFiles[0]?.type === MediaType.PHOTO 
         ? config.photoDisplaySeconds || DEFAULT_CONFIG.photoDisplaySeconds
         : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds,
     }));
@@ -79,17 +81,33 @@ const Slideshow: React.FC<SlideshowProps> = ({
   }, []);
 
   const shuffle = useCallback(() => {
-    const newShuffled = [...shuffledFiles].sort(() => Math.random() - 0.5);
-    setShuffledFiles(newShuffled);
-    setState(prev => ({
-      ...prev,
-      currentIndex: 0,
-      currentMedia: newShuffled[0] || null,
-      timeRemaining: newShuffled[0]?.type === MediaType.PHOTO 
-        ? config.photoDisplaySeconds || DEFAULT_CONFIG.photoDisplaySeconds
-        : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds,
-    }));
-  }, [shuffledFiles, config]);
+    if (isShuffled) {
+      // Return to ordered mode (by date modified, newest first)
+      setShuffledFiles([...mediaFiles]);
+      setIsShuffled(false);
+      setState(prev => ({
+        ...prev,
+        currentIndex: 0,
+        currentMedia: mediaFiles[0] || null,
+        timeRemaining: mediaFiles[0]?.type === MediaType.PHOTO 
+          ? config.photoDisplaySeconds || DEFAULT_CONFIG.photoDisplaySeconds
+          : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds,
+      }));
+    } else {
+      // Enable shuffle mode
+      const newShuffled = [...mediaFiles].sort(() => Math.random() - 0.5);
+      setShuffledFiles(newShuffled);
+      setIsShuffled(true);
+      setState(prev => ({
+        ...prev,
+        currentIndex: 0,
+        currentMedia: newShuffled[0] || null,
+        timeRemaining: newShuffled[0]?.type === MediaType.PHOTO 
+          ? config.photoDisplaySeconds || DEFAULT_CONFIG.photoDisplaySeconds
+          : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds,
+      }));
+    }
+  }, [isShuffled, mediaFiles, config]);
 
   const openInFinder = useCallback(async () => {
     if (!state.currentMedia) return;
@@ -185,6 +203,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
         media={state.currentMedia}
         onVideoEnd={nextSlide}
         config={config}
+        isPlaying={state.isPlaying}
       />
       
       <Controls
@@ -199,6 +218,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
         totalFiles={shuffledFiles.length}
         timeRemaining={state.timeRemaining}
         mediaType={state.currentMedia.type}
+        isShuffled={isShuffled}
       />
     </div>
   );

@@ -9,6 +9,7 @@ export interface MediaFile {
   path: string;
   type: MediaType;
   extension: string;
+  mtime?: Date;
 }
 
 export interface SlideshowConfig {

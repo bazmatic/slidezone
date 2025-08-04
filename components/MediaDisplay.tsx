@@ -9,9 +9,10 @@ interface MediaDisplayProps {
   media: MediaFile;
   onVideoEnd: () => void;
   config: Partial<SlideshowConfig>;
+  isPlaying: boolean;
 }
 
-const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config }) => {
+const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, isPlaying }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoDuration, setVideoDuration] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -53,7 +54,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config }
   }, [media, onVideoEnd]);
 
   useEffect(() => {
-    if (media.type === MediaType.VIDEO && videoRef.current && videoDuration > 0) {
+    if (media.type === MediaType.VIDEO && videoRef.current && videoDuration > 0 && isPlaying) {
       const video = videoRef.current;
       const maxDuration = config.videoDisplaySeconds || 10;
       
@@ -76,7 +77,22 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config }
         onVideoEnd();
       }
     }
-  }, [currentTime, media.type, config.videoDisplaySeconds, onVideoEnd, videoDuration, totalTimePlayed, lastVideoTime]);
+  }, [currentTime, media.type, config.videoDisplaySeconds, onVideoEnd, videoDuration, totalTimePlayed, lastVideoTime, isPlaying]);
+
+  // Handle play/pause for videos
+  useEffect(() => {
+    if (media.type === MediaType.VIDEO && videoRef.current) {
+      const video = videoRef.current;
+      
+      if (isPlaying) {
+        video.play().catch(error => {
+          console.error('Error playing video:', error);
+        });
+      } else {
+        video.pause();
+      }
+    }
+  }, [isPlaying, media.type]);
 
   const renderMedia = () => {
     if (media.type === MediaType.PHOTO) {
@@ -111,7 +127,6 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config }
           ref={videoRef}
           src={media.path}
           className="w-full h-full object-contain"
-          autoPlay
           muted
           loop={false}
           style={{
@@ -130,13 +145,20 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config }
         <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded">
           <div className="flex justify-between text-sm">
             <span>{media.name}</span>
-            <span>
-              {Math.floor(totalTimePlayed)}s / {Math.floor(config.videoDisplaySeconds || 10)}s
-            </span>
+            <div className="flex items-center space-x-2">
+              {!isPlaying && (
+                <span className="text-yellow-300 text-xs">PAUSED</span>
+              )}
+              <span>
+                {Math.floor(totalTimePlayed)}s / {Math.floor(config.videoDisplaySeconds || 10)}s
+              </span>
+            </div>
           </div>
           <div className="w-full bg-gray-600 rounded-full h-1 mt-1">
             <div 
-              className="bg-white h-1 rounded-full transition-all duration-300"
+              className={`h-1 rounded-full transition-all duration-300 ${
+                isPlaying ? 'bg-white' : 'bg-yellow-300'
+              }`}
               style={{ 
                 width: `${(totalTimePlayed / (config.videoDisplaySeconds || 10)) * 100}%` 
               }}
