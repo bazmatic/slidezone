@@ -2,84 +2,109 @@
 
 ## Quick Start
 
-1. **Install Dependencies** (already done)
-   ```bash
-   npm install
-   ```
-
-2. **Add Your Media Files**
-   - Place your photos and videos in the `public/media/` folder
-   - Supported formats:
-     - Photos: .jpg, .jpeg, .png, .gif, .bmp, .webp
-     - Videos: .mp4, .webm, .ogg, .mov, .avi
-
-3. **Start the Application**
-   ```bash
-   npm run dev
-   ```
-
-4. **Open in Browser**
-   - Navigate to `http://localhost:3000`
-   - The slideshow will automatically start
-
-## Features
-
-### Controls
-- **Space**: Play/Pause
-- **← →**: Navigate between files
-- **S**: Shuffle playlist
-- **Settings**: Click the gear icon to adjust timing
-
-### Configuration
-- Photos display for 5 seconds (configurable)
-- Videos loop until reaching 10 seconds (configurable)
-- Smooth transitions between media files
-
-### Display
-- Fullscreen optimized
-- Responsive design
-- Progress indicators
-- Video progress bars
-
-## Example Usage
-
-1. Add some sample images to `public/media/`:
-   ```
-   public/media/
-   ├── vacation-photo-1.jpg
-   ├── family-video.mp4
-   ├── sunset.png
-   └── party-clip.webm
-   ```
-
-2. The app will automatically:
-   - Detect file types
-   - Shuffle the order
-   - Display photos for 5 seconds
-   - Play videos for up to 10 seconds
-   - Loop through all media files
-
-## Customization
-
-Edit `constants/config.ts` to change default settings:
-```typescript
-export const DEFAULT_CONFIG: SlideshowConfig = {
-  photoDisplaySeconds: 8,    // Photos display for 8 seconds
-  videoDisplaySeconds: 15,   // Videos max 15 seconds
-  transitionDuration: 500,   // Faster transitions
-};
+### 1. Install Dependencies
+```bash
+npm install
 ```
+
+### 2. Choose Your Mode
+
+#### Web App (Development)
+```bash
+npm run dev
+```
+Open http://localhost:5111 in your browser.
+
+**Note**: In web mode, place your media files in the `public/media` folder.
+
+#### Electron Desktop App (Recommended)
+```bash
+npm run electron-dev
+```
+
+This starts both the development server and the Electron app. The Electron app will open automatically and allow you to select any folder on your computer.
+
+### 3. Using the Electron App
+
+1. **Select a Folder**: Click "Choose Folder" to select any folder containing your photos and videos
+2. **Browse Media**: The app automatically scans for supported media files
+3. **Enjoy**: Your slideshow will start automatically
+4. **Change Folders**: Use the "Change Folder" button to switch to a different folder
+
+## Supported File Formats
+
+### Photos
+- JPG/JPEG
+- PNG
+- GIF
+- BMP
+- WebP
+
+### Videos
+- MP4
+- WebM
+- OGG
+- MOV
+- AVI
+
+## Building for Distribution
+
+### Development Build
+```bash
+npm run build
+npm run electron
+```
+
+### Production Package
+```bash
+npm run dist
+```
+
+This creates distributable packages in the `dist` folder for:
+- macOS (.dmg)
+- Windows (.exe)
+- Linux (.AppImage)
+
+## Configuration
+
+Edit `constants/config.ts` to customize:
+- Photo display duration
+- Video display duration
+- Transition effects
+- Ken Burns effect settings
 
 ## Troubleshooting
 
-- **No media files showing**: Check that files are in `public/media/` and have supported extensions
-- **Videos not playing**: Ensure video format is supported by your browser (MP4 recommended)
-- **Performance issues**: Optimize image sizes and compress videos
+### Electron App Not Opening
+- Ensure Node.js 18+ is installed
+- Try running `npm run electron-dev` instead
+- Check console for error messages
+
+### Media Files Not Loading
+- Verify file formats are supported
+- Check file permissions
+- Try a different folder
+
+### Performance Issues
+- Optimize image sizes (max 1920x1080 recommended)
+- Compress video files
+- Use WebP format for images when possible
 
 ## Development
 
-- **Build for production**: `npm run build && npm start`
-- **Lint code**: `npm run lint`
-- **Type checking**: Built into the build process
+### Project Structure
+```
+slidezone/
+├── app/                 # Next.js app directory
+├── components/          # React components
+├── electron/            # Electron main process
+├── types/              # TypeScript definitions
+└── public/             # Static assets
+```
 
-The application is now ready to use! Add your media files and enjoy your slideshow. 
+### Available Scripts
+- `npm run dev` - Next.js development server
+- `npm run build` - Build Next.js app
+- `npm run electron-dev` - Electron development mode
+- `npm run electron` - Run built Electron app
+- `npm run dist` - Create distributable packages 

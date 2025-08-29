@@ -18,6 +18,32 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, 
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [totalTimePlayed, setTotalTimePlayed] = useState<number>(0);
   const [lastVideoTime, setLastVideoTime] = useState<number>(0);
+  const [videoIsActuallyPlaying, setVideoIsActuallyPlaying] = useState<boolean>(false);
+
+  // Convert file path to proper URL for display
+  const getMediaUrl = (filePath: string): string => {
+    // If it's already a URL (starts with http://, https://, or file://), return as is
+    if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('file://')) {
+      return filePath;
+    }
+    
+    // In web mode, relative paths starting with /media/ should work as-is
+    // In Electron mode, absolute paths should be converted to file:// URLs
+    if (filePath.startsWith('/media/')) {
+      // This is a web-accessible path, return as-is
+      return filePath;
+    }
+    
+    // If it's an absolute path (starts with / on Unix or has drive letter on Windows), convert to file:// URL
+    if (filePath.startsWith('/') || /^[A-Za-z]:/.test(filePath)) {
+      return `file://${filePath}`;
+    }
+    
+    // Otherwise, treat as relative path
+    return filePath;
+  };
+
+  const mediaUrl = getMediaUrl(media.path);
 
   useEffect(() => {
     if (media.type === MediaType.VIDEO && videoRef.current) {
@@ -33,6 +59,14 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, 
         setCurrentTime(video.currentTime);
       };
 
+      const handlePlay = () => {
+        setVideoIsActuallyPlaying(true);
+      };
+
+      const handlePause = () => {
+        setVideoIsActuallyPlaying(false);
+      };
+
       const handleEnded = () => {
         // Video ended, but we want it to loop until total time is reached
         if (videoRef.current) {
@@ -43,11 +77,15 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, 
 
       video.addEventListener('loadedmetadata', handleLoadedMetadata);
       video.addEventListener('timeupdate', handleTimeUpdate);
+      video.addEventListener('play', handlePlay);
+      video.addEventListener('pause', handlePause);
       video.addEventListener('ended', handleEnded);
 
       return () => {
         video.removeEventListener('loadedmetadata', handleLoadedMetadata);
         video.removeEventListener('timeupdate', handleTimeUpdate);
+        video.removeEventListener('play', handlePlay);
+        video.removeEventListener('pause', handlePause);
         video.removeEventListener('ended', handleEnded);
       };
     }
@@ -102,7 +140,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, 
       if (enableKenBurns) {
         return (
           <KenBurnsEffect
-            src={media.path}
+            src={mediaUrl}
             alt={media.name}
             duration={kenBurnsDuration}
             effectType={KenBurnsType.ZOOM_IN}
@@ -112,7 +150,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, 
       } else {
         return (
           <img
-            src={media.path}
+            src={mediaUrl}
             alt={media.name}
             className="w-full h-full object-contain"
             style={{
@@ -125,10 +163,12 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, 
       return (
         <video
           ref={videoRef}
-          src={media.path}
+          src={mediaUrl}
           className="w-full h-full object-contain"
           muted
-          loop={false}
+          autoPlay
+          loop
+          playsInline
           style={{
             transition: `opacity ${config.transitionDuration || 1000}ms ease-in-out`,
           }}
@@ -137,35 +177,12 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, 
     }
   };
 
+  // Use the actual video playing state for the display
+  const displayIsPlaying = media.type === MediaType.VIDEO ? videoIsActuallyPlaying : isPlaying;
+
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       {renderMedia()}
-      
-      {media.type === MediaType.VIDEO && (
-        <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded">
-          <div className="flex justify-between text-sm">
-            <span>{media.name}</span>
-            <div className="flex items-center space-x-2">
-              {!isPlaying && (
-                <span className="text-yellow-300 text-xs">PAUSED</span>
-              )}
-              <span>
-                {Math.floor(totalTimePlayed)}s / {Math.floor(config.videoDisplaySeconds || 10)}s
-              </span>
-            </div>
-          </div>
-          <div className="w-full bg-gray-600 rounded-full h-1 mt-1">
-            <div 
-              className={`h-1 rounded-full transition-all duration-300 ${
-                isPlaying ? 'bg-white' : 'bg-yellow-300'
-              }`}
-              style={{ 
-                width: `${(totalTimePlayed / (config.videoDisplaySeconds || 10)) * 100}%` 
-              }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

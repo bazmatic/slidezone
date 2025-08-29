@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { MediaFile, MediaType, SlideshowState } from '@/types/media';
+import { MediaFile, MediaType, SlideshowState, MediaFilter } from '@/types/media';
 import { DEFAULT_CONFIG } from '@/constants/config';
 import MediaDisplay from './MediaDisplay';
 import Controls from './Controls';
@@ -9,11 +9,21 @@ import Controls from './Controls';
 interface SlideshowProps {
   mediaFiles: MediaFile[];
   config?: Partial<typeof DEFAULT_CONFIG>;
+  onChangeFolder?: () => void;
+  onClearSavedFolder?: () => void;
+  isElectron?: boolean;
+  mediaFilter: MediaFilter;
+  onFilterChange: (filter: MediaFilter) => void;
 }
 
 const Slideshow: React.FC<SlideshowProps> = ({ 
   mediaFiles, 
-  config = DEFAULT_CONFIG 
+  config = DEFAULT_CONFIG,
+  onChangeFolder,
+  onClearSavedFolder,
+  isElectron = false,
+  mediaFilter,
+  onFilterChange
 }) => {
   const [state, setState] = useState<SlideshowState>({
     currentIndex: 0,
@@ -25,20 +35,34 @@ const Slideshow: React.FC<SlideshowProps> = ({
   const [shuffledFiles, setShuffledFiles] = useState<MediaFile[]>([]);
   const [isShuffled, setIsShuffled] = useState<boolean>(false);
 
+  // Filter media files based on current filter
+  const getFilteredMediaFiles = useCallback(() => {
+    switch (mediaFilter) {
+      case MediaFilter.PHOTOS_ONLY:
+        return mediaFiles.filter(file => file.type === MediaType.PHOTO);
+      case MediaFilter.VIDEOS_ONLY:
+        return mediaFiles.filter(file => file.type === MediaType.VIDEO);
+      case MediaFilter.ALL:
+      default:
+        return mediaFiles;
+    }
+  }, [mediaFiles, mediaFilter]);
+
   // Initialize media files on mount and when files change
   useEffect(() => {
+    const filteredFiles = getFilteredMediaFiles();
     // Start with files in order (by date modified, newest first)
-    setShuffledFiles([...mediaFiles]);
+    setShuffledFiles([...filteredFiles]);
     setIsShuffled(false);
     setState(prev => ({
       ...prev,
       currentIndex: 0,
-      currentMedia: mediaFiles[0] || null,
-      timeRemaining: mediaFiles[0]?.type === MediaType.PHOTO 
+      currentMedia: filteredFiles[0] || null,
+      timeRemaining: filteredFiles[0]?.type === MediaType.PHOTO 
         ? config.photoDisplaySeconds || DEFAULT_CONFIG.photoDisplaySeconds
         : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds,
     }));
-  }, [mediaFiles, config]);
+  }, [mediaFiles, config, getFilteredMediaFiles]);
 
   const nextSlide = useCallback(() => {
     setState(prev => {
@@ -81,21 +105,22 @@ const Slideshow: React.FC<SlideshowProps> = ({
   }, []);
 
   const shuffle = useCallback(() => {
+    const filteredFiles = getFilteredMediaFiles();
     if (isShuffled) {
       // Return to ordered mode (by date modified, newest first)
-      setShuffledFiles([...mediaFiles]);
+      setShuffledFiles([...filteredFiles]);
       setIsShuffled(false);
       setState(prev => ({
         ...prev,
         currentIndex: 0,
-        currentMedia: mediaFiles[0] || null,
-        timeRemaining: mediaFiles[0]?.type === MediaType.PHOTO 
+        currentMedia: filteredFiles[0] || null,
+        timeRemaining: filteredFiles[0]?.type === MediaType.PHOTO 
           ? config.photoDisplaySeconds || DEFAULT_CONFIG.photoDisplaySeconds
           : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds,
       }));
     } else {
       // Enable shuffle mode
-      const newShuffled = [...mediaFiles].sort(() => Math.random() - 0.5);
+      const newShuffled = [...filteredFiles].sort(() => Math.random() - 0.5);
       setShuffledFiles(newShuffled);
       setIsShuffled(true);
       setState(prev => ({
@@ -107,7 +132,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
           : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds,
       }));
     }
-  }, [isShuffled, mediaFiles, config]);
+  }, [isShuffled, getFilteredMediaFiles, config]);
 
   const openInFinder = useCallback(async () => {
     if (!state.currentMedia) return;
@@ -158,6 +183,16 @@ const Slideshow: React.FC<SlideshowProps> = ({
         case 'f':
         case 'F':
           event.preventDefault();
+          const nextFilter = mediaFilter === MediaFilter.ALL 
+            ? MediaFilter.PHOTOS_ONLY 
+            : mediaFilter === MediaFilter.PHOTOS_ONLY 
+            ? MediaFilter.VIDEOS_ONLY 
+            : MediaFilter.ALL;
+          onFilterChange(nextFilter);
+          break;
+        case 'o':
+        case 'O':
+          event.preventDefault();
           openInFinder();
           break;
       }
@@ -165,7 +200,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [togglePlayPause, previousSlide, nextSlide, shuffle, openInFinder]);
+  }, [togglePlayPause, previousSlide, nextSlide, shuffle, openInFinder, mediaFilter, onFilterChange]);
 
   // Timer effect for photos
   useEffect(() => {
@@ -219,6 +254,11 @@ const Slideshow: React.FC<SlideshowProps> = ({
         timeRemaining={state.timeRemaining}
         mediaType={state.currentMedia.type}
         isShuffled={isShuffled}
+        onChangeFolder={onChangeFolder}
+        onClearSavedFolder={onClearSavedFolder}
+        isElectron={isElectron}
+        mediaFilter={mediaFilter}
+        onFilterChange={onFilterChange}
       />
     </div>
   );
