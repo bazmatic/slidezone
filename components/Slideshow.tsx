@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { MediaFile, MediaType, SlideshowState, MediaFilter } from '@/types/media';
+import { MediaFile, MediaType, SlideshowState, MediaFilter, SlideshowConfig } from '@/types/media';
 import { DEFAULT_CONFIG } from '@/constants/config';
 import MediaDisplay from './MediaDisplay';
 import Controls from './Controls';
+import ConfigPanel from './ConfigPanel';
 
 interface SlideshowProps {
   mediaFiles: MediaFile[];
@@ -16,8 +17,8 @@ interface SlideshowProps {
   onFilterChange: (filter: MediaFilter) => void;
 }
 
-const Slideshow: React.FC<SlideshowProps> = ({ 
-  mediaFiles, 
+const Slideshow: React.FC<SlideshowProps> = ({
+  mediaFiles,
   config = DEFAULT_CONFIG,
   onChangeFolder,
   onClearSavedFolder,
@@ -25,6 +26,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
   mediaFilter,
   onFilterChange
 }) => {
+  console.log('Slideshow component - mediaFiles.length:', mediaFiles?.length, 'onChangeFolder:', !!onChangeFolder, 'isElectron:', isElectron);
   const [state, setState] = useState<SlideshowState>({
     currentIndex: 0,
     isPlaying: true,
@@ -34,6 +36,11 @@ const Slideshow: React.FC<SlideshowProps> = ({
 
   const [shuffledFiles, setShuffledFiles] = useState<MediaFile[]>([]);
   const [isShuffled, setIsShuffled] = useState<boolean>(false);
+  const [isConfigPanelOpen, setIsConfigPanelOpen] = useState<boolean>(false);
+  const [slideshowConfig, setSlideshowConfig] = useState<SlideshowConfig>({
+    ...DEFAULT_CONFIG,
+    ...config
+  });
 
   // Filter media files based on current filter
   const getFilteredMediaFiles = useCallback(() => {
@@ -59,18 +66,18 @@ const Slideshow: React.FC<SlideshowProps> = ({
       currentIndex: 0,
       currentMedia: filteredFiles[0] || null,
       timeRemaining: filteredFiles[0]?.type === MediaType.PHOTO 
-        ? config.photoDisplaySeconds || DEFAULT_CONFIG.photoDisplaySeconds
-        : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds,
+        ? slideshowConfig.photoDisplaySeconds
+        : slideshowConfig.videoDisplaySeconds,
     }));
-  }, [mediaFiles, config, getFilteredMediaFiles]);
+  }, [mediaFiles, slideshowConfig, getFilteredMediaFiles]);
 
   const nextSlide = useCallback(() => {
     setState(prev => {
       const nextIndex = (prev.currentIndex + 1) % shuffledFiles.length;
       const nextMedia = shuffledFiles[nextIndex];
       const displayTime = nextMedia?.type === MediaType.PHOTO 
-        ? config.photoDisplaySeconds || DEFAULT_CONFIG.photoDisplaySeconds
-        : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds;
+        ? slideshowConfig.photoDisplaySeconds
+        : slideshowConfig.videoDisplaySeconds;
       
       return {
         ...prev,
@@ -79,7 +86,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
         timeRemaining: displayTime,
       };
     });
-  }, [shuffledFiles, config]);
+  }, [shuffledFiles, slideshowConfig]);
 
   const previousSlide = useCallback(() => {
     setState(prev => {
@@ -88,8 +95,8 @@ const Slideshow: React.FC<SlideshowProps> = ({
         : prev.currentIndex - 1;
       const prevMedia = shuffledFiles[prevIndex];
       const displayTime = prevMedia?.type === MediaType.PHOTO 
-        ? config.photoDisplaySeconds || DEFAULT_CONFIG.photoDisplaySeconds
-        : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds;
+        ? slideshowConfig.photoDisplaySeconds
+        : slideshowConfig.videoDisplaySeconds;
       
       return {
         ...prev,
@@ -98,7 +105,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
         timeRemaining: displayTime,
       };
     });
-  }, [shuffledFiles, config]);
+  }, [shuffledFiles, slideshowConfig]);
 
   const togglePlayPause = useCallback(() => {
     setState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
@@ -115,8 +122,8 @@ const Slideshow: React.FC<SlideshowProps> = ({
         currentIndex: 0,
         currentMedia: filteredFiles[0] || null,
         timeRemaining: filteredFiles[0]?.type === MediaType.PHOTO 
-          ? config.photoDisplaySeconds || DEFAULT_CONFIG.photoDisplaySeconds
-          : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds,
+          ? slideshowConfig.photoDisplaySeconds
+          : slideshowConfig.videoDisplaySeconds,
       }));
     } else {
       // Enable shuffle mode
@@ -128,11 +135,11 @@ const Slideshow: React.FC<SlideshowProps> = ({
         currentIndex: 0,
         currentMedia: newShuffled[0] || null,
         timeRemaining: newShuffled[0]?.type === MediaType.PHOTO 
-          ? config.photoDisplaySeconds || DEFAULT_CONFIG.photoDisplaySeconds
-          : config.videoDisplaySeconds || DEFAULT_CONFIG.videoDisplaySeconds,
+          ? slideshowConfig.photoDisplaySeconds
+          : slideshowConfig.videoDisplaySeconds,
       }));
     }
-  }, [isShuffled, getFilteredMediaFiles, config]);
+  }, [isShuffled, getFilteredMediaFiles, slideshowConfig]);
 
   const openInFinder = useCallback(async () => {
     if (!state.currentMedia) return;
@@ -156,6 +163,24 @@ const Slideshow: React.FC<SlideshowProps> = ({
       }
     } catch (error) {
       console.error('Error opening file in Finder:', error);
+    }
+  }, [state.currentMedia]);
+
+  const handleSettings = useCallback(() => {
+    setIsConfigPanelOpen(true);
+  }, []);
+
+  const handleConfigChange = useCallback((newConfig: SlideshowConfig) => {
+    setSlideshowConfig(newConfig);
+    // Update current media display time if needed
+    if (state.currentMedia) {
+      const newDisplayTime = state.currentMedia.type === MediaType.PHOTO 
+        ? newConfig.photoDisplaySeconds
+        : newConfig.videoDisplaySeconds;
+      setState(prev => ({
+        ...prev,
+        timeRemaining: newDisplayTime
+      }));
     }
   }, [state.currentMedia]);
 
@@ -237,7 +262,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
       <MediaDisplay 
         media={state.currentMedia}
         onVideoEnd={nextSlide}
-        config={config}
+        config={slideshowConfig}
         isPlaying={state.isPlaying}
       />
       
@@ -247,7 +272,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
         onNext={nextSlide}
         onPrevious={previousSlide}
         onShuffle={shuffle}
-        onSettings={() => {}} // TODO: Add settings functionality
+        onSettings={handleSettings}
         onOpenInFinder={openInFinder}
         currentIndex={state.currentIndex}
         totalFiles={shuffledFiles.length}
@@ -259,6 +284,13 @@ const Slideshow: React.FC<SlideshowProps> = ({
         isElectron={isElectron}
         mediaFilter={mediaFilter}
         onFilterChange={onFilterChange}
+      />
+
+      <ConfigPanel
+        config={slideshowConfig}
+        onConfigChange={handleConfigChange}
+        isOpen={isConfigPanelOpen}
+        onClose={() => setIsConfigPanelOpen(false)}
       />
     </div>
   );

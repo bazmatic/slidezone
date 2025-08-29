@@ -47,24 +47,7 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    console.log('App starting...');
-    
-    // Simplified logic - just load media files in web mode
-    const isElectronEnv = !!(window as any).electronAPI;
-    console.log('Electron detected:', isElectronEnv);
-    setIsElectron(isElectronEnv);
-    
-    if (isElectronEnv) {
-      console.log('Running in Electron mode');
-      checkForSavedFolder();
-    } else {
-      console.log('Running in web mode - loading media files');
-      loadMediaFromAPI();
-    }
-  }, [loadMediaFromAPI]);
-
-  const checkForSavedFolder = async () => {
+  const checkForSavedFolder = useCallback(async () => {
     try {
       console.log('Checking for saved folder...');
       const savedFolder = await (window as any).electronAPI.getSavedFolder();
@@ -84,7 +67,24 @@ export default function Home() {
       setError(`Failed to check saved folder: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    console.log('App starting...');
+    
+    // Simplified logic - just load media files in web mode
+    const isElectronEnv = !!(window as any).electronAPI;
+    console.log('Electron detected:', isElectronEnv);
+    setIsElectron(isElectronEnv);
+    
+    if (isElectronEnv) {
+      console.log('Running in Electron mode');
+      checkForSavedFolder();
+    } else {
+      console.log('Running in web mode - loading media files');
+      loadMediaFromAPI();
+    }
+  }, [loadMediaFromAPI, checkForSavedFolder]);
 
   const handleFolderSelect = async (folderPath: string) => {
     console.log('Handling folder selection:', folderPath);
@@ -148,7 +148,7 @@ export default function Home() {
   // 1. No folder is selected, OR
   // 2. No media files are found (empty folder)
   if (isElectron && (!selectedFolder || mediaFiles.length === 0) && !isLoading && !error) {
-    console.log('Showing folder selector');
+    console.log('Showing folder selector - selectedFolder:', selectedFolder, 'mediaFiles.length:', mediaFiles.length, 'isLoading:', isLoading, 'error:', error);
     return (
       <FolderSelector
         selectedFolder={selectedFolder}

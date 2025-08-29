@@ -1,8 +1,10 @@
+console.log('=== PRELOAD SCRIPT LOADING ===');
+console.log('Preload script process.type:', process.type);
+
 const { contextBridge, ipcRenderer } = require('electron');
 
-console.log('Preload script starting...');
-console.log('Preload script __dirname:', __dirname);
-console.log('Preload script process.type:', process.type);
+console.log('=== PRELOAD SCRIPT STARTING ===');
+console.log('Electron modules loaded successfully');
 
 // Test function to verify preload is working
 contextBridge.exposeInMainWorld('testAPI', {

@@ -22,23 +22,23 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, 
 
   // Convert file path to proper URL for display
   const getMediaUrl = (filePath: string): string => {
-    // If it's already a URL (starts with http://, https://, or file://), return as is
-    if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('file://')) {
+    // If it's already a URL (starts with http://, https://, media://, or file://), return as is
+    if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('media://') || filePath.startsWith('file://')) {
       return filePath;
     }
-    
+
     // In web mode, relative paths starting with /media/ should work as-is
-    // In Electron mode, absolute paths should be converted to file:// URLs
     if (filePath.startsWith('/media/')) {
       // This is a web-accessible path, return as-is
       return filePath;
     }
-    
-    // If it's an absolute path (starts with / on Unix or has drive letter on Windows), convert to file:// URL
+
+    // If it's an absolute path (starts with / on Unix or has drive letter on Windows), convert to media:// URL
     if (filePath.startsWith('/') || /^[A-Za-z]:/.test(filePath)) {
-      return `file://${filePath}`;
+      // Use custom media protocol to avoid CORS issues
+      return `media://${encodeURIComponent(filePath)}`;
     }
-    
+
     // Otherwise, treat as relative path
     return filePath;
   };

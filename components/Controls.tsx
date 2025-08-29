@@ -42,6 +42,7 @@ const Controls: React.FC<ControlsProps> = ({
   mediaFilter,
   onFilterChange,
 }) => {
+  console.log('Controls component - onChangeFolder:', !!onChangeFolder, 'onClearSavedFolder:', !!onClearSavedFolder, 'isElectron:', isElectron);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
   const toggleMenu = () => {

@@ -16,6 +16,14 @@ function createWindow() {
   
   // Get saved window state or use defaults
   const savedWindowState = configManager.getWindowState();
+  // Determine the correct preload script path
+  const preloadPath = path.join(__dirname, 'preload.js');
+  const iconPath = path.join(__dirname, 'assets', 'icon.svg');
+  
+  console.log('__dirname:', __dirname);
+  console.log('Preload script absolute path:', preloadPath);
+  console.log('Preload script exists:', require('fs').existsSync(preloadPath));
+  
   const windowOptions = {
     width: savedWindowState?.width || 1200,
     height: savedWindowState?.height || 800,
@@ -24,12 +32,12 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: preloadPath,
       webSecurity: false, // Allow file:// URLs for local media files
       enableRemoteModule: false,
       allowRunningInsecureContent: false
     },
-    icon: path.join(__dirname, 'assets', 'icon.svg'), // SVG icon
+    icon: iconPath, // SVG icon
     titleBarStyle: 'default',
     show: false
   };
@@ -67,7 +75,27 @@ function createWindow() {
       console.log('Window object keys:', Object.keys(window));
       console.log('electronAPI available:', !!window.electronAPI);
       console.log('testAPI available:', !!window.testAPI);
+      console.log('Preload script test:', typeof window.electronAPI);
+      if (window.electronAPI) {
+        console.log('Electron API methods:', Object.keys(window.electronAPI));
+      } else {
+        console.log('Electron API not available - preload script not working!');
+      }
     `);
+  });
+
+  // Debug preload script errors
+  mainWindow.webContents.on('preload-error', (event, preloadPath, error) => {
+    console.error('Preload script error:', preloadPath, error);
+  });
+
+  // Debug preload script loading
+  mainWindow.webContents.on('did-start-loading', () => {
+    console.log('Page started loading');
+  });
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error('Page failed to load:', errorCode, errorDescription, validatedURL);
   });
 
   mainWindow.on('closed', () => {
@@ -97,15 +125,21 @@ function createWindow() {
   });
 }
 
-// Register file protocol
+// Register custom media protocol
 app.whenReady().then(() => {
   console.log('App ready, registering protocols...');
-  // Register file protocol to handle file:// URLs
-  protocol.registerFileProtocol('file', (request, callback) => {
-    const filePath = request.url.replace('file://', '');
-    callback(filePath);
+
+  // Register a custom protocol for media files to bypass CORS issues
+  protocol.registerFileProtocol('media', (request, callback) => {
+    // Extract the file path from the URL
+    // URL format: media:///absolute/path/to/file.png
+    const urlPath = request.url.replace('media://', '');
+    const decodedPath = decodeURIComponent(urlPath);
+
+    console.log('Media protocol request:', request.url, '->', decodedPath);
+    callback(decodedPath);
   });
-  
+
   createWindow();
 });
 
