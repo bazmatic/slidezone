@@ -72,13 +72,16 @@ const Slideshow: React.FC<SlideshowProps> = ({
   }, [mediaFiles, slideshowConfig, getFilteredMediaFiles]);
 
   const nextSlide = useCallback(() => {
+    console.log('nextSlide called, current state:', state.currentIndex, 'total files:', shuffledFiles.length);
     setState(prev => {
       const nextIndex = (prev.currentIndex + 1) % shuffledFiles.length;
       const nextMedia = shuffledFiles[nextIndex];
-      const displayTime = nextMedia?.type === MediaType.PHOTO 
+      const displayTime = nextMedia?.type === MediaType.PHOTO
         ? slideshowConfig.photoDisplaySeconds
         : slideshowConfig.videoDisplaySeconds;
-      
+
+      console.log('Moving to next slide:', nextIndex, 'media:', nextMedia?.name);
+
       return {
         ...prev,
         currentIndex: nextIndex,
@@ -89,15 +92,18 @@ const Slideshow: React.FC<SlideshowProps> = ({
   }, [shuffledFiles, slideshowConfig]);
 
   const previousSlide = useCallback(() => {
+    console.log('previousSlide called, current state:', state.currentIndex, 'total files:', shuffledFiles.length);
     setState(prev => {
-      const prevIndex = prev.currentIndex === 0 
-        ? shuffledFiles.length - 1 
+      const prevIndex = prev.currentIndex === 0
+        ? shuffledFiles.length - 1
         : prev.currentIndex - 1;
       const prevMedia = shuffledFiles[prevIndex];
-      const displayTime = prevMedia?.type === MediaType.PHOTO 
+      const displayTime = prevMedia?.type === MediaType.PHOTO
         ? slideshowConfig.photoDisplaySeconds
         : slideshowConfig.videoDisplaySeconds;
-      
+
+      console.log('Moving to previous slide:', prevIndex, 'media:', prevMedia?.name);
+
       return {
         ...prev,
         currentIndex: prevIndex,
@@ -145,19 +151,20 @@ const Slideshow: React.FC<SlideshowProps> = ({
     if (!state.currentMedia) return;
 
     try {
-      // Extract filename from the path (remove /media/ prefix)
-      const filename = state.currentMedia.path.replace('/media/', '');
-      
+      // Use the actual file path directly
+      const filePath = state.currentMedia.path;
+      console.log('Opening in Finder:', filePath);
+
       const response = await fetch('/api/open-in-finder', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ filename }),
+        body: JSON.stringify({ filePath }),
       });
 
       const data = await response.json();
-      
+
       if (!data.success) {
         console.error('Failed to open file in Finder:', data.error);
       }
@@ -187,44 +194,56 @@ const Slideshow: React.FC<SlideshowProps> = ({
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
+      console.log('Keyboard event:', event.key, 'Code:', event.code);
+
       switch (event.key) {
         case ' ':
           event.preventDefault();
+          console.log('Space: toggling play/pause');
           togglePlayPause();
           break;
         case 'ArrowLeft':
           event.preventDefault();
+          console.log('ArrowLeft: going to previous slide');
           previousSlide();
           break;
         case 'ArrowRight':
           event.preventDefault();
+          console.log('ArrowRight: going to next slide');
           nextSlide();
           break;
         case 's':
         case 'S':
           event.preventDefault();
+          console.log('S: shuffling slides');
           shuffle();
           break;
         case 'f':
         case 'F':
           event.preventDefault();
-          const nextFilter = mediaFilter === MediaFilter.ALL 
-            ? MediaFilter.PHOTOS_ONLY 
-            : mediaFilter === MediaFilter.PHOTOS_ONLY 
-            ? MediaFilter.VIDEOS_ONLY 
+          console.log('F: cycling filter');
+          const nextFilter = mediaFilter === MediaFilter.ALL
+            ? MediaFilter.PHOTOS_ONLY
+            : mediaFilter === MediaFilter.PHOTOS_ONLY
+            ? MediaFilter.VIDEOS_ONLY
             : MediaFilter.ALL;
           onFilterChange(nextFilter);
           break;
         case 'o':
         case 'O':
           event.preventDefault();
+          console.log('O: opening in Finder');
           openInFinder();
           break;
       }
     };
 
+    console.log('Setting up global keyboard shortcuts');
     window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
+    return () => {
+      console.log('Removing global keyboard shortcuts');
+      window.removeEventListener('keydown', handleKeyPress);
+    };
   }, [togglePlayPause, previousSlide, nextSlide, shuffle, openInFinder, mediaFilter, onFilterChange]);
 
   // Timer effect for photos

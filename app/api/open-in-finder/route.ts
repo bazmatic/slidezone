@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exec } from 'child_process';
-import { join } from 'path';
 
 export async function POST(request: NextRequest) {
   try {
-    const { filename } = await request.json();
-    
-    if (!filename) {
+    const { filePath } = await request.json();
+
+    if (!filePath) {
       return NextResponse.json(
-        { success: false, error: 'Filename is required' },
+        { success: false, error: 'File path is required' },
         { status: 400 }
       );
     }
 
-    // Construct the full path to the media file
-    const mediaDir = join(process.cwd(), 'public', 'media');
-    const filePath = join(mediaDir, filename);
+    console.log('Opening file in Finder:', filePath);
 
     // Use the macOS 'open' command to open the file in Finder
     exec(`open -R "${filePath}"`, (error, stdout, stderr) => {
