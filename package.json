@@ -4,12 +4,12 @@
   "private": true,
   "main": "electron/main.js",
   "scripts": {
-    "dev": "next dev -p 5111",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 5111",
+    "start": "next start",
     "lint": "next lint",
     "electron": "electron .",
-    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5111 && electron . --dev\"",
+    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron . --dev\""
     "electron-build": "npm run build && electron-builder",
     "dist": "npm run build && electron-builder --publish=never"
   },

@@ -54,7 +54,7 @@ function createWindow() {
   
   if (isDev) {
     console.log('Loading development URL...');
-    mainWindow.loadURL('http://localhost:5111');
+    mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
   } else {
     console.log('Loading production file...');
