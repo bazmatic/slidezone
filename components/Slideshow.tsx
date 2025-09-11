@@ -167,6 +167,8 @@ const Slideshow: React.FC<SlideshowProps> = ({
 
       if (!data.success) {
         console.error('Failed to open file in Finder:', data.error);
+      } else if (data.message) {
+        console.log('Finder open result:', data.message);
       }
     } catch (error) {
       console.error('Error opening file in Finder:', error);

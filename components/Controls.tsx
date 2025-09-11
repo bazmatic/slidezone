@@ -54,10 +54,10 @@ const Controls: React.FC<ControlsProps> = ({
       {/* Toggle Circle - Always Visible */}
       <button
         onClick={toggleMenu}
-        className="absolute top-4 left-4 w-12 h-12 bg-black bg-opacity-30 hover:bg-opacity-50 rounded-full flex items-center justify-center transition-all duration-200 z-50"
+        className="absolute top-4 left-4 w-12 h-12 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center transition-all duration-200 z-50 border-2 border-gray-800"
         title="Toggle Menu"
       >
-        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <svg className="w-6 h-6 text-black" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
         </svg>
       </button>

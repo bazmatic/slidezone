@@ -14,7 +14,17 @@ export async function POST(request: NextRequest) {
 
     console.log('Opening file in Finder:', filePath);
 
-    // Use the macOS 'open' command to open the file in Finder
+    // Check if the file path is a web URL (browser mode) or absolute path (Electron mode)
+    if (filePath.startsWith('/media/') || filePath.startsWith('http')) {
+      // Browser mode: web URLs can't be opened in Finder from server
+      console.log('Browser mode: Skipping Finder open for web URL:', filePath);
+      return NextResponse.json({
+        success: true,
+        message: 'Finder open skipped in browser mode'
+      });
+    }
+
+    // Electron mode: use the macOS 'open' command to open the file in Finder
     exec(`open -R "${filePath}"`, (error, stdout, stderr) => {
       if (error) {
         console.error('Error opening file in Finder:', error);
