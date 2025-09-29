@@ -6,20 +6,13 @@ import Slideshow from '@/components/Slideshow';
 import FolderSelector from '@/components/FolderSelector';
 
 export default function Home() {
-  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([
-    {
-      id: 'test-1',
-      name: 'test-image',
-      path: '/media/00049-2956718934.png',
-      type: MediaType.PHOTO,
-      extension: '.png'
-    }
-  ]);
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Start with loading true
   const [error, setError] = useState<string | null>(null);
   const [isElectron, setIsElectron] = useState<boolean>(false);
   const [mediaFilter, setMediaFilter] = useState<MediaFilter>(MediaFilter.ALL);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   const loadMediaFromAPI = useCallback(async () => {
     try {
@@ -72,19 +65,45 @@ export default function Home() {
   useEffect(() => {
     console.log('App starting...');
     
-    // Simplified logic - just load media files in web mode
-    const isElectronEnv = !!(window as any).electronAPI;
-    console.log('Electron detected:', isElectronEnv);
-    setIsElectron(isElectronEnv);
+    // Check for Electron API with a small delay to ensure preload script has loaded
+    const checkElectron = () => {
+      const isElectronEnv = !!(window as any).electronAPI;
+      console.log('Electron detected:', isElectronEnv);
+      console.log('Window object keys:', Object.keys(window));
+      console.log('electronAPI available:', !!(window as any).electronAPI);
+      console.log('testAPI available:', !!(window as any).testAPI);
+      
+      setIsElectron(isElectronEnv);
+      setIsInitialized(true);
+      
+      if (isElectronEnv) {
+        console.log('Running in Electron mode');
+        checkForSavedFolder();
+      } else {
+        console.log('Running in web mode - loading media files');
+        loadMediaFromAPI();
+      }
+    };
+
+    // Try immediately and also after a short delay
+    checkElectron();
+    const timeoutId = setTimeout(checkElectron, 100);
     
-    if (isElectronEnv) {
-      console.log('Running in Electron mode');
-      checkForSavedFolder();
-    } else {
-      console.log('Running in web mode - loading media files');
-      loadMediaFromAPI();
-    }
-  }, [loadMediaFromAPI, checkForSavedFolder]);
+    // Fallback: if still not initialized after 2 seconds, assume Electron mode
+    const fallbackTimeoutId = setTimeout(() => {
+      if (!isInitialized) {
+        console.log('Fallback: Assuming Electron mode after timeout');
+        setIsElectron(true);
+        setIsInitialized(true);
+        checkForSavedFolder();
+      }
+    }, 2000);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(fallbackTimeoutId);
+    };
+  }, [loadMediaFromAPI, checkForSavedFolder, isInitialized]);
 
   const handleFolderSelect = async (folderPath: string) => {
     console.log('Handling folder selection:', folderPath);
@@ -141,14 +160,66 @@ export default function Home() {
     mediaFiles: mediaFiles.length, 
     isLoading, 
     error,
-    hasMediaFiles: mediaFiles.length > 0
+    hasMediaFiles: mediaFiles.length > 0,
+    isInitialized
   });
 
-  // Show folder selector if we're in Electron mode and either:
-  // 1. No folder is selected, OR
-  // 2. No media files are found (empty folder)
-  if (isElectron && (!selectedFolder || mediaFiles.length === 0) && !isLoading && !error) {
-    console.log('Showing folder selector - selectedFolder:', selectedFolder, 'mediaFiles.length:', mediaFiles.length, 'isLoading:', isLoading, 'error:', error);
+  // Show loading screen until we've initialized and detected the environment
+  if (!isInitialized) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-black text-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Initializing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show folder selector if we're in Electron mode and no folder is selected
+  if (isElectron && !selectedFolder && !isLoading && !error) {
+    console.log('Showing folder selector - no folder selected');
+    return (
+      <FolderSelector
+        selectedFolder={selectedFolder}
+        onFolderSelect={handleFolderSelect}
+        isLoading={isLoading}
+      />
+    );
+  }
+
+  // Show "no media files found" for Electron mode when folder is selected but empty
+  if (isElectron && selectedFolder && mediaFiles.length === 0 && !isLoading && !error) {
+    console.log('Showing no media files message - folder selected but empty');
+    return (
+      <div className="flex items-center justify-center h-screen bg-black text-white">
+        <div className="text-center">
+          <p className="mb-4">No media files found in selected folder</p>
+          <p className="text-sm text-gray-400 mb-4">
+            Selected folder: {selectedFolder}
+          </p>
+          <div className="space-y-2">
+            <button
+              onClick={() => handleFolderSelect(selectedFolder)}
+              className="px-4 py-2 bg-white bg-opacity-20 rounded hover:bg-opacity-30 transition-all mr-2"
+            >
+              Reload Folder
+            </button>
+            <button
+              onClick={() => setSelectedFolder(null)}
+              className="px-4 py-2 bg-white bg-opacity-20 rounded hover:bg-opacity-30 transition-all"
+            >
+              Choose Different Folder
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show folder selector if we're in Electron mode and no media files are found (default behavior)
+  if (isElectron && mediaFiles.length === 0 && !isLoading && !error) {
+    console.log('Showing folder selector - no media files found, default behavior');
     return (
       <FolderSelector
         selectedFolder={selectedFolder}

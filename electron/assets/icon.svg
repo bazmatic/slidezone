@@ -1,22 +1,52 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="64" fill="#1F2937"/>
+  <!-- Background with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="screenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#374151;stop-opacity:1" />
+    </linearGradient>
+  </defs>
   
-  <!-- Slideshow frames -->
-  <rect x="96" y="128" width="320" height="240" rx="16" fill="#374151" stroke="#6B7280" stroke-width="4"/>
-  <rect x="112" y="144" width="288" height="208" rx="8" fill="#4B5563"/>
+  <!-- Main background -->
+  <rect width="512" height="512" rx="64" fill="url(#bgGradient)"/>
   
-  <!-- Media content representation -->
-  <circle cx="256" cy="248" r="32" fill="#60A5FA"/>
-  <rect x="240" y="232" width="32" height="32" rx="4" fill="#F59E0B"/>
+  <!-- Main screen frame -->
+  <rect x="80" y="100" width="352" height="280" rx="20" fill="url(#screenGradient)" stroke="#60a5fa" stroke-width="6"/>
+  
+  <!-- Screen content area -->
+  <rect x="100" y="120" width="312" height="240" rx="12" fill="#111827"/>
+  
+  <!-- Media content representation - photo and video icons -->
+  <g transform="translate(200, 180)">
+    <!-- Photo icon -->
+    <rect x="0" y="0" width="40" height="30" rx="4" fill="#3b82f6" stroke="#60a5fa" stroke-width="2"/>
+    <circle cx="20" cy="15" r="8" fill="#dbeafe"/>
+    <path d="M12 15l4-4 4 4" stroke="#1e40af" stroke-width="2" fill="none"/>
+    
+    <!-- Video icon -->
+    <rect x="50" y="0" width="40" height="30" rx="4" fill="#ef4444" stroke="#f87171" stroke-width="2"/>
+    <path d="M62 10l8 5-8 5V10z" fill="white"/>
+  </g>
   
   <!-- Play button overlay -->
-  <circle cx="256" cy="248" r="24" fill="rgba(0,0,0,0.5)"/>
-  <path d="M248 236L272 248L248 260V236Z" fill="white"/>
+  <circle cx="256" cy="240" r="28" fill="rgba(0,0,0,0.7)" stroke="#60a5fa" stroke-width="3"/>
+  <path d="M244 228l20 12-20 12V228z" fill="white"/>
   
-  <!-- Progress indicator -->
-  <rect x="112" y="368" width="288" height="8" rx="4" fill="#374151"/>
-  <rect x="112" y="368" width="144" height="8" rx="4" fill="#60A5FA"/>
+  <!-- Progress bar -->
+  <rect x="100" y="380" width="312" height="12" rx="6" fill="#374151"/>
+  <rect x="100" y="380" width="156" height="12" rx="6" fill="#60a5fa"/>
   
-  <!-- App name -->
-  <text x="256" y="420" text-anchor="middle" fill="#F9FAFB" font-family="system-ui, sans-serif" font-size="24" font-weight="bold">SlideZone</text>
+  <!-- Control indicators -->
+  <circle cx="150" cy="420" r="8" fill="#60a5fa"/>
+  <circle cx="200" cy="420" r="8" fill="#6b7280"/>
+  <circle cx="250" cy="420" r="8" fill="#6b7280"/>
+  <circle cx="300" cy="420" r="8" fill="#6b7280"/>
+  <circle cx="350" cy="420" r="8" fill="#6b7280"/>
+  
+  <!-- App name with better styling -->
+  <text x="256" y="460" text-anchor="middle" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" letter-spacing="1px">SlideZone</text>
 </svg> 

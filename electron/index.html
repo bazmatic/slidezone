@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlideZone - Media Slideshow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 500px;
+            padding: 2rem;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            font-weight: bold;
+        }
+        
+        .folder-selector {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        p {
+            color: #ccc;
+            margin-bottom: 1.5rem;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+        }
+        
+        .folder-path {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .supported-formats {
+            font-size: 0.9rem;
+            color: #999;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SlideZone</h1>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <span>Initializing...</span>
+        </div>
+        
+        <div id="folder-selector" style="display: none;">
+            <div class="folder-selector">
+                <h2>Select Media Folder</h2>
+                <p>Choose a folder containing your photos and videos</p>
+                <button id="select-folder-btn">Choose Folder</button>
+                <div class="supported-formats">
+                    <p>Supported formats:</p>
+                    <p>Photos: JPG, PNG, GIF, BMP, WebP</p>
+                    <p>Videos: MP4, WebM, OGG, MOV, AVI</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="saved-folder" style="display: none;">
+            <div class="folder-selector">
+                <h2>Use Saved Folder?</h2>
+                <p>Previously selected folder:</p>
+                <div id="saved-folder-path" class="folder-path"></div>
+                <button id="use-saved-btn">Use This Folder</button>
+                <button id="choose-different-btn">Choose Different</button>
+            </div>
+        </div>
+        
+        <div id="no-media" style="display: none;">
+            <div class="folder-selector">
+                <h2>No Media Files Found</h2>
+                <p id="no-media-message"></p>
+                <button id="reload-folder-btn">Reload Folder</button>
+                <button id="choose-new-folder-btn">Choose Different Folder</button>
+            </div>
+        </div>
+        
+        <div id="error" style="display: none;">
+            <div class="folder-selector">
+                <h2>Error</h2>
+                <p id="error-message" class="error"></p>
+                <button id="retry-btn">Retry</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('SlideZone Electron App Starting...');
+        
+        // Check if Electron API is available
+        if (!window.electronAPI) {
+            console.error('Electron API not available!');
+            document.getElementById('error-message').textContent = 'Electron API not available. Please run this app in Electron.';
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+        } else {
+            console.log('Electron API available, initializing...');
+            initializeApp();
+        }
+        
+        async function initializeApp() {
+            try {
+                // Check for saved folder
+                const savedFolder = await window.electronAPI.getSavedFolder();
+                console.log('Saved folder:', savedFolder);
+                
+                if (savedFolder) {
+                    showSavedFolder(savedFolder);
+                } else {
+                    showFolderSelector();
+                }
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                showError('Failed to initialize app: ' + error.message);
+            }
+        }
+        
+        function showFolderSelector() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('folder-selector').style.display = 'block';
+        }
+        
+        function showSavedFolder(folderPath) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('saved-folder').style.display = 'block';
+            document.getElementById('saved-folder-path').textContent = folderPath;
+        }
+        
+        function showNoMedia(folderPath) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('no-media').style.display = 'block';
+            document.getElementById('no-media-message').textContent = 
+                folderPath ? `No media files found in: ${folderPath}` : 'No media files found in selected folder';
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error-message').textContent = message;
+        }
+        
+        function showLoading() {
+            document.getElementById('folder-selector').style.display = 'none';
+            document.getElementById('saved-folder').style.display = 'none';
+            document.getElementById('no-media').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('loading').style.display = 'flex';
+        }
+        
+        async function selectFolder() {
+            try {
+                showLoading();
+                const folderPath = await window.electronAPI.selectFolder();
+                if (folderPath) {
+                    await loadMediaFromFolder(folderPath);
+                } else {
+                    showFolderSelector();
+                }
+            } catch (error) {
+                console.error('Error selecting folder:', error);
+                showError('Failed to select folder: ' + error.message);
+            }
+        }
+        
+        async function useSavedFolder() {
+            try {
+                const savedFolder = await window.electronAPI.getSavedFolder();
+                if (savedFolder) {
+                    await loadMediaFromFolder(savedFolder);
+                } else {
+                    showFolderSelector();
+                }
+            } catch (error) {
+                console.error('Error using saved folder:', error);
+                showError('Failed to use saved folder: ' + error.message);
+            }
+        }
+        
+        async function loadMediaFromFolder(folderPath) {
+            try {
+                showLoading();
+                const result = await window.electronAPI.readMediaFolder(folderPath);
+                console.log('Media folder result:', result);
+                
+                if (result.success && result.files.length > 0) {
+                    // Success! Show success message and option to start slideshow
+                    console.log(`Found ${result.files.length} media files, starting slideshow...`);
+                    showSuccess(folderPath, result.files.length);
+                } else {
+                    showNoMedia(folderPath);
+                }
+            } catch (error) {
+                console.error('Error loading media folder:', error);
+                showError('Failed to load media folder: ' + error.message);
+            }
+        }
+        
+        function showSuccess(folderPath, fileCount) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('folder-selector').style.display = 'none';
+            document.getElementById('saved-folder').style.display = 'none';
+            document.getElementById('no-media').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            
+            // Create success message
+            const container = document.querySelector('.container');
+            container.innerHTML = `
+                <h1>SlideZone</h1>
+                <div class="folder-selector">
+                    <h2>✅ Media Files Found!</h2>
+                    <p>Successfully loaded <strong>${fileCount}</strong> media files from:</p>
+                    <div class="folder-path">${folderPath}</div>
+                    <p style="margin-top: 1rem;">The slideshow functionality is not yet implemented in this simple interface.</p>
+                    <p>To use the full slideshow features, please run the app in development mode:</p>
+                    <div style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; margin: 1rem 0; font-family: monospace; font-size: 0.9rem;">
+                        npm run electron-dev
+                    </div>
+                    <button onclick="location.reload()">Choose Different Folder</button>
+                </div>
+            `;
+        }
+        
+        // Event listeners
+        document.getElementById('select-folder-btn').addEventListener('click', selectFolder);
+        document.getElementById('use-saved-btn').addEventListener('click', useSavedFolder);
+        document.getElementById('choose-different-btn').addEventListener('click', selectFolder);
+        document.getElementById('reload-folder-btn').addEventListener('click', async () => {
+            const savedFolder = await window.electronAPI.getSavedFolder();
+            if (savedFolder) {
+                await loadMediaFromFolder(savedFolder);
+            }
+        });
+        document.getElementById('choose-new-folder-btn').addEventListener('click', selectFolder);
+        document.getElementById('retry-btn').addEventListener('click', initializeApp);
+    </script>
+</body>
+</html>

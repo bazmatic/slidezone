@@ -58,9 +58,13 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   } else {
     console.log('Loading production file...');
-    const filePath = path.join(__dirname, '..', 'out', 'index.html');
+    // Use the simple HTML file instead of the complex Next.js build
+    const filePath = path.join(__dirname, 'index.html');
     console.log('File path:', filePath);
     mainWindow.loadFile(filePath);
+    
+    // Open dev tools in production to debug preload script issues
+    mainWindow.webContents.openDevTools();
   }
 
   mainWindow.once('ready-to-show', () => {
@@ -72,14 +76,17 @@ function createWindow() {
   mainWindow.webContents.on('did-finish-load', () => {
     console.log('Page finished loading');
     mainWindow.webContents.executeJavaScript(`
+      console.log('=== RENDERER PROCESS DEBUG ===');
       console.log('Window object keys:', Object.keys(window));
       console.log('electronAPI available:', !!window.electronAPI);
       console.log('testAPI available:', !!window.testAPI);
       console.log('Preload script test:', typeof window.electronAPI);
       if (window.electronAPI) {
         console.log('Electron API methods:', Object.keys(window.electronAPI));
+        console.log('=== ELECTRON API WORKING ===');
       } else {
-        console.log('Electron API not available - preload script not working!');
+        console.log('=== ELECTRON API NOT AVAILABLE - PRELOAD SCRIPT NOT WORKING! ===');
+        console.log('Available window properties:', Object.getOwnPropertyNames(window));
       }
     `);
   });
