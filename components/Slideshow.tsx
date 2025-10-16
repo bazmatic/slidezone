@@ -89,7 +89,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
         timeRemaining: displayTime,
       };
     });
-  }, [shuffledFiles, slideshowConfig]);
+  }, [shuffledFiles, slideshowConfig, state.currentIndex]);
 
   const previousSlide = useCallback(() => {
     console.log('previousSlide called, current state:', state.currentIndex, 'total files:', shuffledFiles.length);
@@ -111,7 +111,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
         timeRemaining: displayTime,
       };
     });
-  }, [shuffledFiles, slideshowConfig]);
+  }, [shuffledFiles, slideshowConfig, state.currentIndex]);
 
   const togglePlayPause = useCallback(() => {
     setState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));

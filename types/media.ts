@@ -46,6 +46,32 @@ declare global {
       }>;
       getSavedFolder: () => Promise<string | undefined>;
       clearSavedFolder: () => Promise<boolean>;
+      // Chromecast methods
+      getChromecastDevices: () => Promise<{
+        success: boolean;
+        devices: Array<{ id: string; name: string; friendlyName: string }>;
+        error?: string;
+      }>;
+      startChromecastSession: (deviceId: string) => Promise<{
+        success: boolean;
+        session?: any;
+        error?: string;
+      }>;
+      stopChromecastSession: () => Promise<{
+        success: boolean;
+        error?: string;
+      }>;
+      castMedia: (mediaUrl: string, mediaType: string) => Promise<{
+        success: boolean;
+        mediaUrl: string;
+        mediaType: string;
+        error?: string;
+      }>;
+      getChromecastStatus: () => Promise<{
+        success: boolean;
+        session?: any;
+        connected: boolean;
+      }>;
     };
   }
 } 

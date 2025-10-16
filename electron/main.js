@@ -7,6 +7,8 @@ const { ConfigManager } = require('./config');
 
 let mainWindow;
 let configManager;
+let chromecastSession = null;
+let chromecastDevices = [];
 
 function createWindow() {
   console.log('Creating window...');
@@ -54,14 +56,21 @@ function createWindow() {
   
   if (isDev) {
     console.log('Loading development URL...');
-    mainWindow.loadURL('http://localhost:3000');
+    mainWindow.loadURL('http://localhost:3001');
     mainWindow.webContents.openDevTools();
   } else {
-    console.log('Loading production file...');
-    // Use the simple HTML file instead of the complex Next.js build
-    const filePath = path.join(__dirname, 'index.html');
-    console.log('File path:', filePath);
-    mainWindow.loadFile(filePath);
+    console.log('Loading production build...');
+    // Use the built Next.js app from the out directory
+    const indexPath = path.join(__dirname, '..', 'out', 'index.html');
+    console.log('Production file path:', indexPath);
+    
+    if (require('fs').existsSync(indexPath)) {
+      mainWindow.loadFile(indexPath);
+    } else {
+      console.log('Built app not found, falling back to simple HTML');
+      const filePath = path.join(__dirname, 'index.html');
+      mainWindow.loadFile(filePath);
+    }
     
     // Open dev tools in production to debug preload script issues
     mainWindow.webContents.openDevTools();
@@ -252,4 +261,90 @@ ipcMain.handle('read-media-folder', async (event, folderPath) => {
       count: 0
     };
   }
+});
+
+// Chromecast IPC handlers
+ipcMain.handle('get-chromecast-devices', async () => {
+  console.log('get-chromecast-devices IPC called');
+  try {
+    // This will be handled by the electron-chromecast library
+    // The devices will be available through chrome.cast API in the renderer
+    return {
+      success: true,
+      devices: chromecastDevices
+    };
+  } catch (error) {
+    console.error('Error getting Chromecast devices:', error);
+    return {
+      success: false,
+      error: error.message,
+      devices: []
+    };
+  }
+});
+
+ipcMain.handle('start-chromecast-session', async (event, deviceId) => {
+  console.log('start-chromecast-session IPC called with:', deviceId);
+  try {
+    // This will be handled by the renderer process using chrome.cast API
+    // We'll just track the session state here
+    chromecastSession = {
+      deviceId: deviceId,
+      connected: true,
+      startTime: new Date()
+    };
+    return {
+      success: true,
+      session: chromecastSession
+    };
+  } catch (error) {
+    console.error('Error starting Chromecast session:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+});
+
+ipcMain.handle('stop-chromecast-session', async () => {
+  console.log('stop-chromecast-session IPC called');
+  try {
+    chromecastSession = null;
+    return {
+      success: true
+    };
+  } catch (error) {
+    console.error('Error stopping Chromecast session:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+});
+
+ipcMain.handle('cast-media', async (event, mediaUrl, mediaType) => {
+  console.log('cast-media IPC called with:', mediaUrl, mediaType);
+  try {
+    // This will be handled by the renderer process using chrome.cast API
+    return {
+      success: true,
+      mediaUrl: mediaUrl,
+      mediaType: mediaType
+    };
+  } catch (error) {
+    console.error('Error casting media:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+});
+
+ipcMain.handle('get-chromecast-status', async () => {
+  console.log('get-chromecast-status IPC called');
+  return {
+    success: true,
+    session: chromecastSession,
+    connected: chromecastSession !== null
+  };
 }); 

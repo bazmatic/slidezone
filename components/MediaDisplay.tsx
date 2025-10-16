@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { MediaFile, MediaType } from '@/types/media';
 import { SlideshowConfig } from '@/types/media';
 import KenBurnsEffect, { KenBurnsType } from './KenBurnsEffect';
@@ -149,10 +150,11 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, 
         );
       } else {
         return (
-          <img
+          <Image
             src={mediaUrl}
             alt={media.name}
-            className="w-full h-full object-contain"
+            fill
+            className="object-contain"
             style={{
               transition: `opacity ${config.transitionDuration || 1000}ms ease-in-out`,
             }}

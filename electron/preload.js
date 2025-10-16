@@ -3,6 +3,9 @@ console.log('Preload script process.type:', process.type);
 
 const { contextBridge, ipcRenderer } = require('electron');
 
+// Chromecast functionality disabled for now
+console.log('Chromecast functionality disabled');
+
 console.log('=== PRELOAD SCRIPT STARTING ===');
 console.log('Electron modules loaded successfully');
 
@@ -30,6 +33,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clearSavedFolder: () => {
     console.log('clearSavedFolder called');
     return ipcRenderer.invoke('clear-saved-folder');
+  },
+  // Chromecast functionality
+  getChromecastDevices: () => {
+    console.log('getChromecastDevices called');
+    return ipcRenderer.invoke('get-chromecast-devices');
+  },
+  startChromecastSession: (deviceId) => {
+    console.log('startChromecastSession called with:', deviceId);
+    return ipcRenderer.invoke('start-chromecast-session', deviceId);
+  },
+  stopChromecastSession: () => {
+    console.log('stopChromecastSession called');
+    return ipcRenderer.invoke('stop-chromecast-session');
+  },
+  castMedia: (mediaUrl, mediaType) => {
+    console.log('castMedia called with:', mediaUrl, mediaType);
+    return ipcRenderer.invoke('cast-media', mediaUrl, mediaType);
+  },
+  getChromecastStatus: () => {
+    console.log('getChromecastStatus called');
+    return ipcRenderer.invoke('get-chromecast-status');
   }
 });
 
