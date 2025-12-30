@@ -1,0 +1,1 @@
+Build the project from root, and fix any issues. If you encounter a difficult problem, stop and ask the user for help.
