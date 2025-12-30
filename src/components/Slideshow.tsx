@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MediaFile, MediaFilter, SlideshowConfig } from '@/types/media';
 import { DEFAULT_CONFIG } from '@/constants/config';
-import { filterMediaFiles, getDisplayTime } from '@/utils/mediaUtils';
+import { filterMediaFiles, getDisplayTime, getNextFilter } from '@/utils/mediaUtils';
 import { useSlideshowNavigation } from '@/hooks/useSlideshowNavigation';
 import { useMediaShuffle } from '@/hooks/useMediaShuffle';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useSlideshowTimer } from '@/hooks/useSlideshowTimer';
-import { useMediaFilter } from '@/hooks/useMediaFilter';
 import { platformService } from '@/services/PlatformService';
 import MediaDisplay from './MediaDisplay';
 import Controls from './Controls';
@@ -38,9 +37,9 @@ const Slideshow: React.FC<SlideshowProps> = ({
     ...config,
   });
 
-  const { filter, getFilteredFiles } = useMediaFilter(mediaFilter);
-  const filteredFiles = useMemo(() => getFilteredFiles(mediaFiles), [mediaFiles, filter, getFilteredFiles]);
-  const { shuffledFiles, isShuffled, shuffle, reset: resetShuffle } = useMediaShuffle(filteredFiles);
+  // Filter media files directly using the prop
+  const filteredFiles = useMemo(() => filterMediaFiles(mediaFiles, mediaFilter), [mediaFiles, mediaFilter]);
+  const { shuffledFiles, isShuffled, shuffle } = useMediaShuffle(filteredFiles);
 
   const {
     currentIndex,
@@ -54,27 +53,29 @@ const Slideshow: React.FC<SlideshowProps> = ({
 
   // Reset navigation when files change - use a ref to track previous values
   const prevFilesLengthRef = React.useRef<number>(mediaFiles.length);
-  const prevFilterRef = React.useRef<MediaFilter>(filter);
-  const resetShuffleRef = React.useRef(resetShuffle);
+  const prevFilterRef = React.useRef<MediaFilter>(mediaFilter);
   const resetNavigationRef = React.useRef(resetNavigation);
   
   // Keep refs updated
   useEffect(() => {
-    resetShuffleRef.current = resetShuffle;
     resetNavigationRef.current = resetNavigation;
-  }, [resetShuffle, resetNavigation]);
+  }, [resetNavigation]);
   
   useEffect(() => {
     const filesLengthChanged = prevFilesLengthRef.current !== mediaFiles.length;
-    const filterChanged = prevFilterRef.current !== filter;
+    const filterChanged = prevFilterRef.current !== mediaFilter;
     
     if (filesLengthChanged || filterChanged) {
-      resetShuffleRef.current();
+      console.log(`[Slideshow] Filter or files changed: filter=${mediaFilter}, filesLength=${mediaFiles.length}, filteredLength=${filteredFiles.length}`);
+      
+      // When filter changes, preserve shuffle state - useMediaShuffle will automatically
+      // re-shuffle the new filtered list if shuffle is active, or update to ordered if not
+      // We only need to reset navigation to start from the beginning
       resetNavigationRef.current();
       prevFilesLengthRef.current = mediaFiles.length;
-      prevFilterRef.current = filter;
+      prevFilterRef.current = mediaFilter;
     }
-  }, [mediaFiles.length, filter]);
+  }, [mediaFiles.length, mediaFilter, filteredFiles.length]);
 
   const togglePlayPause = useCallback(() => {
     setIsPlaying(prev => !prev);
@@ -115,7 +116,9 @@ const Slideshow: React.FC<SlideshowProps> = ({
     onPrevious: previousSlide,
     onNext: nextSlide,
     onShuffle: shuffle,
-    onFilter: () => onFilterChange(filter === MediaFilter.ALL ? MediaFilter.PHOTOS_ONLY : filter === MediaFilter.PHOTOS_ONLY ? MediaFilter.VIDEOS_ONLY : MediaFilter.ALL),
+    onFilter: () => {
+      onFilterChange(getNextFilter(mediaFilter));
+    },
     onOpenFinder: openInFinder,
   });
 
@@ -160,7 +163,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
         onChangeFolder={onChangeFolder}
         onClearSavedFolder={onClearSavedFolder}
         isElectron={isElectron}
-        mediaFilter={filter}
+        mediaFilter={mediaFilter}
         onFilterChange={onFilterChange}
       />
 
