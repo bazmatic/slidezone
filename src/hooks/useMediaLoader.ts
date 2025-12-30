@@ -14,7 +14,7 @@ export function useMediaLoader() {
       setError(null);
 
       const mediaService = platformService.getMediaService();
-      const data = mediaService.getMediaFiles();
+      const data = await mediaService.getMediaFiles();
 
       console.log(`[useMediaLoader] loadMediaFromAPI result: success=${data.success}, count=${data.count}`);
       
