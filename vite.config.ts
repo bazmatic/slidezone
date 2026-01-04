@@ -9,7 +9,7 @@ function removeMediaFolders() {
     name: 'remove-media-folders',
     closeBundle() {
       const distDir = path.resolve(__dirname, 'dist')
-      const mediaFolders = ['media', 'media2', 'medis']
+      const mediaFolders = ['media', 'media0', 'media2', 'medis']
       
       for (const folder of mediaFolders) {
         const folderPath = path.join(distDir, folder)

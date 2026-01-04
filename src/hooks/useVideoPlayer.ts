@@ -33,13 +33,19 @@ export function useVideoPlayer(config: VideoPlayerConfig) {
     }
   }, [media]);
 
-  // Handle play/pause
+  // Handle play/pause and duration changes
   useEffect(() => {
     if (media.type !== MediaType.VIDEO || !videoRef.current) {
       return;
     }
 
     const video = videoRef.current;
+    
+    // Clear any existing timer first
+    if (videoTimerRef.current) {
+      clearTimeout(videoTimerRef.current);
+      videoTimerRef.current = null;
+    }
     
     if (isPlaying) {
       // Wait for video to be ready before playing
@@ -72,11 +78,6 @@ export function useVideoPlayer(config: VideoPlayerConfig) {
       videoTimerRef.current = timer;
     } else {
       video.pause();
-      
-      if (videoTimerRef.current) {
-        clearTimeout(videoTimerRef.current);
-        videoTimerRef.current = null;
-      }
     }
 
     return () => {

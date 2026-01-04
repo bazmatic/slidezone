@@ -42,8 +42,11 @@
     },
     "files": [
       "electron/**/*",
-      "dist/**/*",
+      "dist/index.html",
+      "dist/assets/*.js",
+      "dist/assets/*.css",
       "!dist/media/**/*",
+      "!dist/media0/**/*",
       "!dist/media2/**/*",
       "!dist/medis/**/*",
       "node_modules/**/*"
