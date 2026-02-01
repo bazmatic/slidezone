@@ -29,7 +29,6 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
       ref={videoRef}
       src={mediaUrl}
       className="w-full h-full object-contain"
-      muted
       autoPlay={false}
       loop
       playsInline

@@ -14,26 +14,31 @@ export function useVideoPlayer(config: VideoPlayerConfig) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoIsActuallyPlaying, setVideoIsActuallyPlaying] = useState<boolean>(false);
   const videoTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const videoStartTimeRef = useRef<number | null>(null);
+  const currentDurationRef = useRef<number>(slideshowConfig.videoDisplaySeconds || 10);
 
-  // Reset video when media changes
+  // Reset internal state when media changes. Do not set currentTime or load() here:
+  // the element may still be showing the previous video, so that would flash the
+  // previous video's first frame before the new src (from parent) takes effect.
   useEffect(() => {
     if (media.type === MediaType.VIDEO && videoRef.current) {
       const video = videoRef.current;
-      
+
       setVideoIsActuallyPlaying(false);
-      
+
       if (videoTimerRef.current) {
         clearTimeout(videoTimerRef.current);
         videoTimerRef.current = null;
       }
-      
-      video.pause();
-      video.currentTime = 0;
-      video.load();
-    }
-  }, [media]);
 
-  // Handle play/pause and duration changes
+      videoStartTimeRef.current = null;
+      currentDurationRef.current = slideshowConfig.videoDisplaySeconds || 10;
+
+      video.pause();
+    }
+  }, [media, slideshowConfig.videoDisplaySeconds]);
+
+  // Handle play/pause
   useEffect(() => {
     if (media.type !== MediaType.VIDEO || !videoRef.current) {
       return;
@@ -70,14 +75,20 @@ export function useVideoPlayer(config: VideoPlayerConfig) {
       
       tryPlay();
       
+      // Record start time and set initial timer with current config value
+      videoStartTimeRef.current = Date.now();
       const maxDuration = slideshowConfig.videoDisplaySeconds || 10;
+      currentDurationRef.current = maxDuration;
+      console.log('[useVideoPlayer] Setting video timer for', maxDuration, 'seconds (media:', media.path, ')');
       const timer = setTimeout(() => {
+        console.log('[useVideoPlayer] Video timer expired, calling onVideoEnd');
         onVideoEnd();
       }, maxDuration * 1000);
       
       videoTimerRef.current = timer;
     } else {
       video.pause();
+      videoStartTimeRef.current = null;
     }
 
     return () => {
@@ -86,7 +97,50 @@ export function useVideoPlayer(config: VideoPlayerConfig) {
         videoTimerRef.current = null;
       }
     };
-  }, [isPlaying, media.type, slideshowConfig.videoDisplaySeconds, onVideoEnd]);
+  }, [isPlaying, media.type, media.path, slideshowConfig.videoDisplaySeconds, onVideoEnd]);
+
+  // Handle duration changes while video is playing
+  useEffect(() => {
+    if (media.type !== MediaType.VIDEO || !videoRef.current || !isPlaying || !videoStartTimeRef.current) {
+      return;
+    }
+
+    const newDuration = slideshowConfig.videoDisplaySeconds || 10;
+    
+    // Only reset timer if duration actually changed
+    if (newDuration !== currentDurationRef.current) {
+      console.log('[useVideoPlayer] Duration changed from', currentDurationRef.current, 'to', newDuration, 'seconds');
+      
+      // Calculate elapsed time
+      const elapsed = (Date.now() - videoStartTimeRef.current) / 1000;
+      const remaining = Math.max(0, newDuration - elapsed);
+      
+      console.log('[useVideoPlayer] Elapsed:', elapsed, 'seconds, Remaining:', remaining, 'seconds');
+      
+      // Clear old timer
+      if (videoTimerRef.current) {
+        clearTimeout(videoTimerRef.current);
+        videoTimerRef.current = null;
+      }
+      
+      // Update current duration
+      currentDurationRef.current = newDuration;
+      
+      // Set new timer with remaining time
+      if (remaining > 0) {
+        const timer = setTimeout(() => {
+          console.log('[useVideoPlayer] Video timer expired after duration change, calling onVideoEnd');
+          onVideoEnd();
+        }, remaining * 1000);
+        
+        videoTimerRef.current = timer;
+      } else {
+        // Duration already expired, trigger immediately
+        console.log('[useVideoPlayer] Duration already expired, calling onVideoEnd immediately');
+        onVideoEnd();
+      }
+    }
+  }, [slideshowConfig.videoDisplaySeconds, media.type, isPlaying, onVideoEnd]);
 
   // Video event handlers - use refs to avoid recreating on every render
   const isPlayingRef = useRef(isPlaying);
