@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { MediaFile, MediaFilter, SlideshowConfig } from '@/types/media';
+import { MediaFile, MediaFilter, SlideshowConfig, DisplayOrder } from '@/types/media';
 import { DEFAULT_CONFIG } from '@/constants/config';
 import { filterMediaFiles, getDisplayTime, getNextFilter } from '@/utils/mediaUtils';
 import { useSlideshowNavigation } from '@/hooks/useSlideshowNavigation';
-import { useMediaShuffle } from '@/hooks/useMediaShuffle';
+import { useDisplayOrder } from '@/hooks/useMediaShuffle';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useSlideshowTimer } from '@/hooks/useSlideshowTimer';
 import { platformService } from '@/services/PlatformService';
@@ -48,7 +48,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
 
   // Filter media files directly using the prop
   const filteredFiles = useMemo(() => filterMediaFiles(mediaFiles, mediaFilter), [mediaFiles, mediaFilter]);
-  const { shuffledFiles, isShuffled, shuffle } = useMediaShuffle(filteredFiles);
+  const { orderedFiles, displayOrder, cycleDisplayOrder } = useDisplayOrder(filteredFiles);
 
   const {
     currentIndex,
@@ -58,33 +58,33 @@ const Slideshow: React.FC<SlideshowProps> = ({
     nextSlide,
     previousSlide,
     reset: resetNavigation,
-  } = useSlideshowNavigation(shuffledFiles, slideshowConfig);
+  } = useSlideshowNavigation(orderedFiles, slideshowConfig);
 
-  // Reset navigation when files change - use a ref to track previous values
+  // Reset navigation when files, filter, or display order change
   const prevFilesLengthRef = React.useRef<number>(mediaFiles.length);
   const prevFilterRef = React.useRef<MediaFilter>(mediaFilter);
+  const prevDisplayOrderRef = React.useRef<DisplayOrder>(displayOrder);
   const resetNavigationRef = React.useRef(resetNavigation);
-  
-  // Keep refs updated
+
   useEffect(() => {
     resetNavigationRef.current = resetNavigation;
   }, [resetNavigation]);
-  
+
   useEffect(() => {
     const filesLengthChanged = prevFilesLengthRef.current !== mediaFiles.length;
     const filterChanged = prevFilterRef.current !== mediaFilter;
-    
-    if (filesLengthChanged || filterChanged) {
-      console.log(`[Slideshow] Filter or files changed: filter=${mediaFilter}, filesLength=${mediaFiles.length}, filteredLength=${filteredFiles.length}`);
-      
-      // When filter changes, preserve shuffle state - useMediaShuffle will automatically
-      // re-shuffle the new filtered list if shuffle is active, or update to ordered if not
-      // We only need to reset navigation to start from the beginning
+    const displayOrderChanged = prevDisplayOrderRef.current !== displayOrder;
+
+    if (filesLengthChanged || filterChanged || displayOrderChanged) {
+      if (filesLengthChanged || filterChanged) {
+        console.log(`[Slideshow] Filter or files changed: filter=${mediaFilter}, filesLength=${mediaFiles.length}, filteredLength=${filteredFiles.length}`);
+      }
       resetNavigationRef.current();
       prevFilesLengthRef.current = mediaFiles.length;
       prevFilterRef.current = mediaFilter;
+      prevDisplayOrderRef.current = displayOrder;
     }
-  }, [mediaFiles.length, mediaFilter, filteredFiles.length]);
+  }, [mediaFiles.length, mediaFilter, displayOrder, filteredFiles.length]);
 
   const togglePlayPause = useCallback(() => {
     setIsPlaying(prev => !prev);
@@ -129,7 +129,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
     onPlayPause: togglePlayPause,
     onPrevious: previousSlide,
     onNext: nextSlide,
-    onShuffle: shuffle,
+    onCycleDisplayOrder: cycleDisplayOrder,
     onFilter: () => {
       onFilterChange(getNextFilter(mediaFilter));
     },
@@ -170,14 +170,14 @@ const Slideshow: React.FC<SlideshowProps> = ({
         onPlayPause={togglePlayPause}
         onNext={nextSlide}
         onPrevious={previousSlide}
-        onShuffle={shuffle}
+        onCycleDisplayOrder={cycleDisplayOrder}
         onSettings={handleSettings}
         onOpenInFinder={openInFinder}
         currentIndex={currentIndex}
-        totalFiles={shuffledFiles.length}
+        totalFiles={orderedFiles.length}
         timeRemaining={timeRemaining}
         mediaType={currentMedia.type}
-        isShuffled={isShuffled}
+        displayOrder={displayOrder}
         mediaFilter={mediaFilter}
         onFilterChange={onFilterChange}
       />

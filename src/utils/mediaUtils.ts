@@ -1,4 +1,4 @@
-import { MediaFile, MediaType, SlideshowConfig, MediaFilter } from '@/types/media';
+import { MediaFile, MediaType, SlideshowConfig, MediaFilter, DisplayOrder } from '@/types/media';
 
 export function getDisplayTime(media: MediaFile | null, config: SlideshowConfig): number {
   if (!media) {
@@ -48,6 +48,21 @@ export function getNextFilter(current: MediaFilter): MediaFilter {
       return MediaFilter.ALL;
     default:
       return MediaFilter.ALL;
+  }
+}
+
+export function getNextDisplayOrder(current: DisplayOrder): DisplayOrder {
+  switch (current) {
+    case DisplayOrder.NONE:
+      return DisplayOrder.RANDOM;
+    case DisplayOrder.RANDOM:
+      return DisplayOrder.ALPHABETICAL;
+    case DisplayOrder.ALPHABETICAL:
+      return DisplayOrder.REVERSE_ALPHABETICAL;
+    case DisplayOrder.REVERSE_ALPHABETICAL:
+      return DisplayOrder.NONE;
+    default:
+      return DisplayOrder.NONE;
   }
 }
 

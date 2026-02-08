@@ -1,51 +1,42 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { MediaFile } from '@/types/media';
+import { useState, useCallback, useMemo } from 'react';
+import { MediaFile, DisplayOrder } from '@/types/media';
 import { shuffleArray } from '@/utils/mediaLoader';
+import { getNextDisplayOrder } from '@/utils/mediaUtils';
 
-export function useMediaShuffle(originalFiles: MediaFile[]) {
-  const [shuffledFiles, setShuffledFiles] = useState<MediaFile[]>(originalFiles);
-  const [isShuffled, setIsShuffled] = useState<boolean>(false);
-  const prevFilesRef = useRef(originalFiles);
+export function useDisplayOrder(originalFiles: MediaFile[]) {
+  const [displayOrder, setDisplayOrder] = useState<DisplayOrder>(DisplayOrder.NONE);
 
-  useEffect(() => {
-    // Only update if files actually changed (reference comparison)
-    if (prevFilesRef.current !== originalFiles) {
-      // Always update shuffledFiles when originalFiles changes, regardless of shuffle state
-      // This ensures we're always working with the current file list
-      if (!isShuffled) {
-        setShuffledFiles([...originalFiles]);
-      } else {
-        // If shuffled, re-shuffle with new files
-        setShuffledFiles(shuffleArray(originalFiles));
-      }
-      prevFilesRef.current = originalFiles;
-    }
-  }, [originalFiles, isShuffled]);
-
-  const shuffle = useCallback(() => {
-    setShuffledFiles(prev => {
-      if (isShuffled) {
-        // Return to ordered mode
-        setIsShuffled(false);
+  const orderedFiles = useMemo((): MediaFile[] => {
+    switch (displayOrder) {
+      case DisplayOrder.NONE:
         return [...originalFiles];
-      } else {
-        // Enable shuffle mode
-        setIsShuffled(true);
+      case DisplayOrder.RANDOM:
         return shuffleArray(originalFiles);
-      }
-    });
-  }, [isShuffled, originalFiles]);
+      case DisplayOrder.ALPHABETICAL:
+        return [...originalFiles].sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+        );
+      case DisplayOrder.REVERSE_ALPHABETICAL:
+        return [...originalFiles].sort((a, b) =>
+          b.name.localeCompare(a.name, undefined, { sensitivity: 'base' })
+        );
+      default:
+        return [...originalFiles];
+    }
+  }, [originalFiles, displayOrder]);
+
+  const cycleDisplayOrder = useCallback(() => {
+    setDisplayOrder((prev) => getNextDisplayOrder(prev));
+  }, []);
 
   const reset = useCallback(() => {
-    setShuffledFiles([...originalFiles]);
-    setIsShuffled(false);
-  }, [originalFiles]);
+    setDisplayOrder(DisplayOrder.NONE);
+  }, []);
 
   return {
-    shuffledFiles,
-    isShuffled,
-    shuffle,
+    orderedFiles,
+    displayOrder,
+    cycleDisplayOrder,
     reset,
   };
 }
-
