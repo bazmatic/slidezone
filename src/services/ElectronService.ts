@@ -16,6 +16,7 @@ export interface ElectronService {
     error?: string;
   }>;
   getSplashUrl(): string;
+  getMediaMetadata(filePath: string): Promise<{ hasPrompt: boolean; promptText?: string }>;
   isAvailable(): boolean;
 }
 

@@ -67,5 +67,12 @@ export class ElectronServiceImpl implements ElectronService {
   getSplashUrl(): string {
     return window.electronAPI?.getSplashUrl?.() ?? '';
   }
+
+  async getMediaMetadata(filePath: string): Promise<{ hasPrompt: boolean; promptText?: string }> {
+    if (!this.isAvailable() || !window.electronAPI!.getMediaMetadata) {
+      return { hasPrompt: false };
+    }
+    return window.electronAPI!.getMediaMetadata(filePath);
+  }
 }
 

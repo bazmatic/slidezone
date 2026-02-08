@@ -16,6 +16,7 @@ export interface ElectronAPI {
     error?: string;
   }>;
   getSplashUrl: () => string;
+  getMediaMetadata: (filePath: string) => Promise<{ hasPrompt: boolean; promptText?: string }>;
 }
 
 declare global {

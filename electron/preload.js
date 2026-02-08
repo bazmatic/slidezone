@@ -36,7 +36,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     console.log('openInFinder called with:', filePath);
     return ipcRenderer.invoke('open-in-finder', filePath);
   },
-  getSplashUrl: () => 'app-assets://./splash.mp4'
+  getSplashUrl: () => 'app-assets://./splash.mp4',
+  getMediaMetadata: (filePath) => ipcRenderer.invoke('get-media-metadata', filePath),
 });
 
 console.log('Preload script completed, APIs exposed'); 
