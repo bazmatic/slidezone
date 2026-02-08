@@ -18,6 +18,9 @@
 /build
 /dist
 
+# Electron main process (esbuild bundle from electron/main.ts)
+electron/main.js
+
 # misc
 .DS_Store
 *.pem

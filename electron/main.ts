@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, protocol } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, protocol, shell } from 'electron';
 import path from 'path';
 import fs from 'fs/promises';
 import { getMediaTypeFromExtension } from '../src/utils/mediaLoader';
@@ -206,7 +206,6 @@ ipcMain.handle('read-media-folder', async (_event, folderPath: string) => {
 ipcMain.handle('open-in-finder', async (_event, filePath: string) => {
   console.log('open-in-finder IPC called with:', filePath);
   try {
-    const { shell } = await import('electron');
     shell.showItemInFolder(filePath);
     return { success: true, message: 'File opened in Finder' };
   } catch (error) {
