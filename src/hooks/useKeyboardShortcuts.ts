@@ -5,7 +5,7 @@ interface KeyboardShortcutsConfig {
   onPlayPause?: () => void;
   onPrevious?: () => void;
   onNext?: () => void;
-  onShuffle?: () => void;
+  onCycleDisplayOrder?: () => void;
   onFilter?: () => void;
   onOpenFinder?: () => void;
   onMuteToggle?: () => void;
@@ -35,7 +35,7 @@ export function useKeyboardShortcuts(config: KeyboardShortcutsConfig) {
           break;
         case KeyboardShortcut.SHUFFLE:
           event.preventDefault();
-          config.onShuffle?.();
+          config.onCycleDisplayOrder?.();
           break;
         case KeyboardShortcut.FILTER:
           event.preventDefault();
@@ -60,7 +60,7 @@ export function useKeyboardShortcuts(config: KeyboardShortcutsConfig) {
     config.onPlayPause,
     config.onPrevious,
     config.onNext,
-    config.onShuffle,
+    config.onCycleDisplayOrder,
     config.onFilter,
     config.onOpenFinder,
     config.onMuteToggle,

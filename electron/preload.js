@@ -38,6 +38,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   getSplashUrl: () => 'app-assets://./splash.mp4',
   getMediaMetadata: (filePath) => ipcRenderer.invoke('get-media-metadata', filePath),
+  getSlideshowSettings: () => ipcRenderer.invoke('get-slideshow-settings'),
+  setSlideshowSettings: (settings) => ipcRenderer.invoke('set-slideshow-settings', settings),
 });
 
 console.log('Preload script completed, APIs exposed'); 

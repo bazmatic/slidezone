@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
-import { MediaType, MediaFilter } from '@/types/media';
+import { MediaType, MediaFilter, DisplayOrder } from '@/types/media';
 import { getNextFilter } from '@/utils/mediaUtils';
 import { KeyboardShortcut, SHORTCUT_LABELS } from '@/constants/keyboard';
 import { FILTER_DISPLAY_CONFIG } from '@/constants/filterDisplay';
+import { DISPLAY_ORDER_CONFIG } from '@/constants/displayOrder';
 import { useLeftEdgePanel } from '@/hooks/useLeftEdgePanel';
 
 function tooltipWithShortcut(label: string, shortcut: KeyboardShortcut | undefined): string {
@@ -17,14 +18,14 @@ interface ControlsProps {
   onPlayPause: () => void;
   onNext: () => void;
   onPrevious: () => void;
-  onShuffle: () => void;
+  onCycleDisplayOrder: () => void;
   onSettings: () => void;
   onOpenInFinder: () => void;
   currentIndex: number;
   totalFiles: number;
   timeRemaining: number;
   mediaType: MediaType;
-  isShuffled?: boolean;
+  displayOrder: DisplayOrder;
   mediaFilter: MediaFilter;
   onFilterChange: (filter: MediaFilter) => void;
 }
@@ -36,20 +37,21 @@ const Controls: React.FC<ControlsProps> = ({
   onPlayPause,
   onNext,
   onPrevious,
-  onShuffle,
+  onCycleDisplayOrder,
   onSettings,
   onOpenInFinder,
   currentIndex,
   totalFiles,
   timeRemaining,
   mediaType,
-  isShuffled = false,
+  displayOrder,
   mediaFilter,
   onFilterChange,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const { isOpen } = useLeftEdgePanel(panelRef);
   const filterDisplay = FILTER_DISPLAY_CONFIG[mediaFilter];
+  const orderDisplay = DISPLAY_ORDER_CONFIG[displayOrder];
 
   return (
     <div
@@ -117,16 +119,15 @@ const Controls: React.FC<ControlsProps> = ({
               </button>
 
               <button
-                onClick={onShuffle}
-                className={`p-2 rounded-full transition-all focus:outline-none focus:ring-1 focus:ring-white/25 ${
-                  isShuffled 
-                    ? 'bg-blue-500 bg-opacity-80 hover:bg-opacity-90' 
-                    : 'bg-white bg-opacity-20 hover:bg-opacity-30'
-                }`}
-                title={tooltipWithShortcut(isShuffled ? 'Shuffle (On)' : 'Shuffle (Off)', KeyboardShortcut.SHUFFLE)}
+                onClick={onCycleDisplayOrder}
+                className={`p-2 rounded-full transition-all focus:outline-none focus:ring-1 focus:ring-white/25 ${orderDisplay.buttonClassName}`}
+                title={tooltipWithShortcut(orderDisplay.title, KeyboardShortcut.SHUFFLE)}
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+                  <path d={orderDisplay.svgPath} />
+                  {orderDisplay.svgPathSecondary != null && (
+                    <path d={orderDisplay.svgPathSecondary} />
+                  )}
                 </svg>
               </button>
 

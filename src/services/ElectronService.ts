@@ -1,4 +1,4 @@
-import { MediaFile } from '@/types/media';
+import { MediaFile, SlideshowConfig } from '@/types/media';
 
 export interface ElectronService {
   selectFolder(): Promise<string | null>;
@@ -17,6 +17,8 @@ export interface ElectronService {
   }>;
   getSplashUrl(): string;
   getMediaMetadata(filePath: string): Promise<{ hasPrompt: boolean; promptText?: string }>;
+  getSlideshowSettings(): Promise<SlideshowConfig | null>;
+  setSlideshowSettings(settings: SlideshowConfig): Promise<void>;
   isAvailable(): boolean;
 }
 

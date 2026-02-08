@@ -58,6 +58,15 @@ class ConfigManager {
     this.saveConfig();
   }
 
+  getSlideshowSettings() {
+    return this.config.slideshowSettings ?? null;
+  }
+
+  setSlideshowSettings(settings) {
+    this.config.slideshowSettings = settings;
+    this.saveConfig();
+  }
+
   getConfig() {
     return { ...this.config };
   }
