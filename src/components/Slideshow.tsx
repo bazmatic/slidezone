@@ -35,7 +35,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
   onFilterChange,
 }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(true);
   const [isConfigPanelOpen, setIsConfigPanelOpen] = useState<boolean>(false);
   const [slideshowConfig, setSlideshowConfig] = useState<SlideshowConfig>({
     ...DEFAULT_CONFIG,

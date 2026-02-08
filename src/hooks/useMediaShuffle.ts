@@ -1,32 +1,79 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { MediaFile, DisplayOrder } from '@/types/media';
 import { shuffleArray } from '@/utils/mediaLoader';
 import { getNextDisplayOrder } from '@/utils/mediaUtils';
 
+function sortAlphabetical(files: MediaFile[]): MediaFile[] {
+  return [...files].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+  );
+}
+
+function sortReverseAlphabetical(files: MediaFile[]): MediaFile[] {
+  return [...files].sort((a, b) =>
+    b.name.localeCompare(a.name, undefined, { sensitivity: 'base' })
+  );
+}
+
+interface SortCache {
+  alphabetical: MediaFile[] | null;
+  reverseAlphabetical: MediaFile[] | null;
+  originalFilesRef: MediaFile[] | null;
+}
+
 export function useDisplayOrder(originalFiles: MediaFile[]) {
   const [displayOrder, setDisplayOrder] = useState<DisplayOrder>(DisplayOrder.NONE);
+  const [orderedFiles, setOrderedFiles] = useState<MediaFile[]>(() => [...originalFiles]);
+  const cacheRef = useRef<SortCache>({
+    alphabetical: null,
+    reverseAlphabetical: null,
+    originalFilesRef: null,
+  });
 
-  const orderedFiles = useMemo((): MediaFile[] => {
+  // Compute orderedFiles after paint so the icon updates first; use cache when available.
+  useEffect(() => {
+    const cache = cacheRef.current;
+    if (originalFiles !== cache.originalFilesRef) {
+      cache.alphabetical = null;
+      cache.reverseAlphabetical = null;
+      cache.originalFilesRef = originalFiles;
+    }
+
     switch (displayOrder) {
       case DisplayOrder.NONE:
-        return [...originalFiles];
+        setOrderedFiles([...originalFiles]);
+        break;
       case DisplayOrder.RANDOM:
-        return shuffleArray(originalFiles);
+        setOrderedFiles(shuffleArray(originalFiles));
+        break;
       case DisplayOrder.ALPHABETICAL:
-        return [...originalFiles].sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-        );
+        if (cache.alphabetical !== null) {
+          setOrderedFiles(cache.alphabetical);
+        } else {
+          const sorted = sortAlphabetical(originalFiles);
+          cache.alphabetical = sorted;
+          setOrderedFiles(sorted);
+        }
+        break;
       case DisplayOrder.REVERSE_ALPHABETICAL:
-        return [...originalFiles].sort((a, b) =>
-          b.name.localeCompare(a.name, undefined, { sensitivity: 'base' })
-        );
+        if (cache.reverseAlphabetical !== null) {
+          setOrderedFiles(cache.reverseAlphabetical);
+        } else {
+          const sorted = sortReverseAlphabetical(originalFiles);
+          cache.reverseAlphabetical = sorted;
+          setOrderedFiles(sorted);
+        }
+        break;
       default:
-        return [...originalFiles];
+        setOrderedFiles([...originalFiles]);
     }
-  }, [originalFiles, displayOrder]);
+  }, [displayOrder, originalFiles]);
 
   const cycleDisplayOrder = useCallback(() => {
-    setDisplayOrder((prev) => getNextDisplayOrder(prev));
+    flushSync(() => {
+      setDisplayOrder((prev) => getNextDisplayOrder(prev));
+    });
   }, []);
 
   const reset = useCallback(() => {
