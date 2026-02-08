@@ -22,7 +22,7 @@ function createWindow(): void {
   configManager = new ConfigManager();
   const savedWindowState = configManager.getWindowState();
   const preloadPath = path.join(__dirname, 'preload.js');
-  const iconPath = path.join(__dirname, 'assets', 'icon.svg');
+  const iconPath = path.join(__dirname, 'assets', 'slidezone.png');
 
   console.log('__dirname:', __dirname);
   console.log('Preload script absolute path:', preloadPath);
@@ -119,6 +119,19 @@ app.whenReady().then(() => {
     const decodedPath = decodeURIComponent(urlPath);
     console.log('Media protocol request:', request.url, '->', decodedPath);
     callback(decodedPath);
+  });
+
+  protocol.registerFileProtocol('app-assets', (request, callback) => {
+    const prefix = 'app-assets://./';
+    const urlPath = request.url.replace(prefix, '').split('?')[0];
+    const decodedPath = decodeURIComponent(urlPath);
+    const assetsDir = path.join(__dirname, 'assets');
+    const resolvedPath = path.normalize(path.join(assetsDir, decodedPath));
+    if (!resolvedPath.startsWith(assetsDir)) {
+      callback({ error: -2 });
+      return;
+    }
+    callback(resolvedPath);
   });
 
   createWindow();

@@ -13,7 +13,8 @@
     "kill-port": "lsof -ti:5173 | xargs kill -9 2>/dev/null || true",
     "electron-dev": "npm run kill-port && npm run build:electron && concurrently \"npm run dev\" \"sleep 3 && electron . --dev\"",
     "electron-build": "npm run build && npm run build:electron && electron-builder",
-    "dist": "npm run build && npm run build:electron && electron-builder --publish=never"
+    "dist": "npm run build && npm run build:electron && electron-builder --publish=never",
+    "prepare:splash": "ffmpeg -i electron/assets/splash.mp4 -an -c:v copy -y /tmp/splash-no-audio.mp4 && mv /tmp/splash-no-audio.mp4 electron/assets/splash.mp4"
   },
   "dependencies": {
     "react": "^18",
@@ -39,6 +40,7 @@
   "build": {
     "appId": "com.slidezone.app",
     "productName": "SlideZone",
+    "icon": "electron/assets/slidezone.png",
     "directories": {
       "output": "dist"
     },
