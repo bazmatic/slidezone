@@ -214,7 +214,7 @@ ipcMain.handle('read-media-folder', async (_event, folderPath: string) => {
       }
     }
 
-    mediaFiles.sort((a, b) => new Date(b.mtime!).getTime() - new Date(a.mtime!).getTime());
+    mediaFiles.sort((a, b) => a.name.localeCompare(b.name));
     console.log(`Found ${mediaFiles.length} media files`);
     return { success: true, files: mediaFiles, count: mediaFiles.length };
   } catch (error) {
