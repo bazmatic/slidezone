@@ -21,6 +21,7 @@ export interface MediaFile {
 export interface SlideshowConfig {
   photoDisplaySeconds: number;
   videoDisplaySeconds: number;
+  playVideoToEnd: boolean;
   transitionDuration: number;
   enableKenBurns: boolean;
   kenBurnsDuration: number;

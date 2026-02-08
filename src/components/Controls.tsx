@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { MediaType, MediaFilter } from '@/types/media';
 import { getNextFilter } from '@/utils/mediaUtils';
 import { KeyboardShortcut, SHORTCUT_LABELS } from '@/constants/keyboard';
+import { FILTER_DISPLAY_CONFIG } from '@/constants/filterDisplay';
+import { useLeftEdgePanel } from '@/hooks/useLeftEdgePanel';
 
 function tooltipWithShortcut(label: string, shortcut: KeyboardShortcut | undefined): string {
   const shortcutLabel = shortcut !== undefined ? SHORTCUT_LABELS[shortcut] : undefined;
@@ -51,28 +53,17 @@ const Controls: React.FC<ControlsProps> = ({
   mediaFilter,
   onFilterChange,
 }) => {
-  const [isMenuVisible, setIsMenuVisible] = useState(false);
-
-  const toggleMenu = () => {
-    setIsMenuVisible(!isMenuVisible);
-  };
+  const panelRef = useRef<HTMLDivElement>(null);
+  const { isOpen } = useLeftEdgePanel(panelRef);
+  const filterDisplay = FILTER_DISPLAY_CONFIG[mediaFilter];
 
   return (
-    <>
-      {/* Toggle Circle - Always Visible */}
-      <button
-        onClick={toggleMenu}
-        className="absolute top-4 left-4 w-12 h-12 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center transition-all duration-200 z-50 border-2 border-gray-800 focus:outline-none focus:ring-1 focus:ring-white/30 focus:ring-offset-1 focus:ring-offset-gray-800"
-        title="Toggle Menu"
-      >
-        <svg className="w-6 h-6 text-black" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
-        </svg>
-      </button>
-
-      {/* Menu Panel - Directly below hamburger, left-aligned */}
-      {isMenuVisible && (
-        <div className="absolute left-4 top-16 bg-black bg-opacity-75 text-white py-4 pl-2 pr-4 rounded-lg backdrop-blur-sm transition-all duration-200 z-40">
+    <div
+      ref={panelRef}
+      className={`absolute left-4 top-4 bg-black bg-opacity-75 text-white py-4 pl-2 pr-4 rounded-lg backdrop-blur-sm transition-transform duration-200 z-40 ${
+        isOpen ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)]'
+      } ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+    >
           <div className="flex flex-col items-start space-y-4">
 
             {/* Control Buttons */}
@@ -151,34 +142,14 @@ const Controls: React.FC<ControlsProps> = ({
                 onClick={() => {
                   onFilterChange(getNextFilter(mediaFilter));
                 }}
-                className={`p-2 rounded-full transition-all focus:outline-none focus:ring-1 focus:ring-white/25 ${
-                  mediaFilter === MediaFilter.ALL
-                    ? 'bg-white bg-opacity-20 hover:bg-opacity-30'
-                    : mediaFilter === MediaFilter.PHOTOS_ONLY
-                    ? 'bg-green-500 bg-opacity-80 hover:bg-opacity-90'
-                    : 'bg-purple-500 bg-opacity-80 hover:bg-opacity-90'
-                }`}
-                title={tooltipWithShortcut(
-                  mediaFilter === MediaFilter.ALL 
-                    ? 'Filter: All Media' 
-                    : mediaFilter === MediaFilter.PHOTOS_ONLY 
-                    ? 'Filter: Photos Only' 
-                    : 'Filter: Videos Only',
-                  KeyboardShortcut.FILTER
-                )}
+                className={`p-2 rounded-full transition-all focus:outline-none focus:ring-1 focus:ring-white/25 ${filterDisplay.buttonClassName}`}
+                title={tooltipWithShortcut(filterDisplay.title, KeyboardShortcut.FILTER)}
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M14,12V19.88C14.04,20.18 13.94,20.5 13.71,20.71C13.32,21.1 12.69,21.1 12.3,20.71L10.29,18.7C10.06,18.47 9.96,18.16 10,17.88V12H9.97L4.21,4.62C3.87,4.19 3.95,3.56 4.38,3.22C4.57,3.08 4.78,3 5,3V3H19V3C19.22,3 19.43,3.08 19.62,3.22C20.05,3.56 20.13,4.19 19.79,4.62L14.03,12H14Z"/>
-                </svg>
-              </button>
-
-              <button
-                onClick={onSettings}
-                className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all focus:outline-none focus:ring-1 focus:ring-white/25"
-                title={tooltipWithShortcut('Settings', undefined)}
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                  <path d={filterDisplay.svgPath} />
+                  {filterDisplay.svgPathSecondary != null && (
+                    <path d={filterDisplay.svgPathSecondary} />
+                  )}
                 </svg>
               </button>
 
@@ -188,7 +159,7 @@ const Controls: React.FC<ControlsProps> = ({
                 title={tooltipWithShortcut('Open in Finder', KeyboardShortcut.OPEN_FINDER)}
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                  <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>
                 </svg>
               </button>
 
@@ -219,11 +190,21 @@ const Controls: React.FC<ControlsProps> = ({
                   </button>
                 </>
               )}
+
+              <div className="w-8 h-px bg-white bg-opacity-30"></div>
+
+              <button
+                onClick={onSettings}
+                className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all focus:outline-none focus:ring-1 focus:ring-white/25"
+                title={tooltipWithShortcut('Settings', undefined)}
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
-      )}
-    </>
   );
 };
 
