@@ -16,6 +16,10 @@ interface ConfigPanelProps {
   onConfigChange: (config: SlideshowConfig) => void;
   isOpen: boolean;
   onClose: () => void;
+  isElectron?: boolean;
+  selectedFolder?: string | null;
+  onChangeFolder?: () => void;
+  onClearSavedFolder?: () => void;
 }
 
 const ConfigPanel: React.FC<ConfigPanelProps> = ({
@@ -23,6 +27,10 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   onConfigChange,
   isOpen,
   onClose,
+  isElectron = false,
+  selectedFolder,
+  onChangeFolder,
+  onClearSavedFolder,
 }) => {
   const [localConfig, setLocalConfig] = useState<SlideshowConfig>(config);
 
@@ -135,6 +143,41 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 className={INPUT_CLASS}
               />
             </div>
+          )}
+
+          {isElectron && (
+            <>
+              <div className="border-t border-gray-600 pt-4 mt-4">
+                <label className={LABEL_CLASS}>Media folder</label>
+                <p className="text-sm bg-gray-700/50 border border-gray-600 rounded px-3 py-2 break-all text-gray-300 mb-3">
+                  {selectedFolder ?? 'No folder selected'}
+                </p>
+                <div className="flex gap-2">
+                  {onChangeFolder && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        onChangeFolder();
+                        onClose();
+                      }}
+                    >
+                      Change folder
+                    </Button>
+                  )}
+                  {onClearSavedFolder && (
+                    <Button
+                      variant="danger"
+                      onClick={async () => {
+                        await onClearSavedFolder();
+                        onClose();
+                      }}
+                    >
+                      Clear saved folder
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </>
           )}
         </div>
 

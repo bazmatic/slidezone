@@ -63,5 +63,9 @@ export class ElectronServiceImpl implements ElectronService {
       error: 'openInFinder is not available'
     };
   }
+
+  getSplashUrl(): string {
+    return window.electronAPI?.getSplashUrl?.() ?? '';
+  }
 }
 

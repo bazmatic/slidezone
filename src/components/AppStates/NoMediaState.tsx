@@ -10,6 +10,8 @@ interface NoMediaStateProps {
   onSecondaryAction?: () => void;
   secondaryActionLabel?: string;
   selectedFolder?: string | null;
+  /** When true, action buttons are centred instead of right-aligned. */
+  centerActions?: boolean;
 }
 
 export const NoMediaState: React.FC<NoMediaStateProps> = ({
@@ -20,7 +22,11 @@ export const NoMediaState: React.FC<NoMediaStateProps> = ({
   onSecondaryAction,
   secondaryActionLabel,
   selectedFolder,
+  centerActions = false,
 }) => {
+  const footerClass = centerActions
+    ? 'flex justify-center gap-2 mt-6'
+    : DIALOG_FOOTER_CLASS;
   return (
     <div className="flex items-center justify-center h-screen bg-black text-white">
       <div className={`${PANEL_CLASS} w-full max-w-md mx-4 text-center`}>
@@ -32,7 +38,7 @@ export const NoMediaState: React.FC<NoMediaStateProps> = ({
           </p>
         )}
         {(onPrimaryAction || onSecondaryAction) && (
-          <div className={DIALOG_FOOTER_CLASS}>
+          <div className={footerClass}>
             {onSecondaryAction && secondaryActionLabel && (
               <Button variant="secondary" onClick={onSecondaryAction}>
                 {secondaryActionLabel}

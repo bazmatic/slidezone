@@ -14,6 +14,7 @@ import ConfigPanel from './ConfigPanel';
 interface SlideshowProps {
   mediaFiles: MediaFile[];
   config?: Partial<typeof DEFAULT_CONFIG>;
+  selectedFolder?: string | null;
   onChangeFolder?: () => void;
   onClearSavedFolder?: () => void;
   isElectron?: boolean;
@@ -24,6 +25,7 @@ interface SlideshowProps {
 const Slideshow: React.FC<SlideshowProps> = ({
   mediaFiles,
   config = DEFAULT_CONFIG,
+  selectedFolder,
   onChangeFolder,
   onClearSavedFolder,
   isElectron = false,
@@ -169,9 +171,6 @@ const Slideshow: React.FC<SlideshowProps> = ({
         timeRemaining={timeRemaining}
         mediaType={currentMedia.type}
         isShuffled={isShuffled}
-        onChangeFolder={onChangeFolder}
-        onClearSavedFolder={onClearSavedFolder}
-        isElectron={isElectron}
         mediaFilter={mediaFilter}
         onFilterChange={onFilterChange}
       />
@@ -181,6 +180,10 @@ const Slideshow: React.FC<SlideshowProps> = ({
         onConfigChange={handleConfigChange}
         isOpen={isConfigPanelOpen}
         onClose={() => setIsConfigPanelOpen(false)}
+        isElectron={isElectron}
+        selectedFolder={selectedFolder}
+        onChangeFolder={onChangeFolder}
+        onClearSavedFolder={onClearSavedFolder}
       />
     </div>
   );

@@ -4,16 +4,21 @@ import { PANEL_CLASS } from '@/constants/dialogStyles';
 import { LoadingSpinner } from './ui/LoadingSpinner';
 import { Button } from './ui/Button';
 
+const CLOSE_ICON_PATH =
+  'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z';
+
 interface FolderSelectorProps {
   selectedFolder: string | null;
   onFolderSelect: (folderPath: string) => void;
+  onClose?: () => void;
   isLoading?: boolean;
 }
 
-const FolderSelector: React.FC<FolderSelectorProps> = ({ 
-  selectedFolder, 
-  onFolderSelect, 
-  isLoading = false 
+const FolderSelector: React.FC<FolderSelectorProps> = ({
+  selectedFolder,
+  onFolderSelect,
+  onClose,
+  isLoading = false,
 }) => {
   const [savedFolder, setSavedFolder] = useState<string | null>(null);
   const [isCheckingSaved, setIsCheckingSaved] = useState(true);
@@ -67,7 +72,21 @@ const FolderSelector: React.FC<FolderSelectorProps> = ({
         
         {savedFolder && (
           <div className={`${PANEL_CLASS} mb-6`}>
-            <h2 className="text-xl font-semibold text-white mb-4">Use Saved Folder?</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-white">Use Saved Folder?</h2>
+              {onClose && savedFolder && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-gray-400 hover:text-white transition-colors"
+                  aria-label="Close"
+                >
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d={CLOSE_ICON_PATH} />
+                  </svg>
+                </button>
+              )}
+            </div>
             <p className="text-sm text-gray-300 mb-2">Previously selected folder:</p>
             <p className="text-sm bg-black bg-opacity-50 p-2 rounded break-all mb-4">
               {savedFolder}
@@ -95,7 +114,21 @@ const FolderSelector: React.FC<FolderSelectorProps> = ({
 
         {!savedFolder && (
           <div className={`${PANEL_CLASS} mb-6`}>
-            <h2 className="text-xl font-semibold text-white mb-4">Select Media Folder</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-white">Select Media Folder</h2>
+              {onClose && savedFolder && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-gray-400 hover:text-white transition-colors"
+                  aria-label="Close"
+                >
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d={CLOSE_ICON_PATH} />
+                  </svg>
+                </button>
+              )}
+            </div>
 
             {selectedFolder ? (
               <div className="mb-4">

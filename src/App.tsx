@@ -101,6 +101,14 @@ export default function App() {
       <FolderSelector
         selectedFolder={selectedFolder}
         onFolderSelect={handleFolderSelect}
+        onClose={() => {
+          checkForSavedFolder().then((saved) => {
+            if (saved) {
+              setSelectedFolder(saved);
+              loadMediaFromFolder(saved);
+            }
+          });
+        }}
         isLoading={isLoading}
       />
     );
@@ -142,6 +150,7 @@ export default function App() {
     <div className="relative">
       <Slideshow
         mediaFiles={mediaFiles}
+        selectedFolder={selectedFolder}
         onChangeFolder={() => setSelectedFolder(null)}
         onClearSavedFolder={handleClearSavedFolder}
         isElectron={isElectron}
