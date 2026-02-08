@@ -9,11 +9,22 @@ import type { MediaFile } from '../src/types/media';
 const { ConfigManager } = require('./config');
 
 let mainWindow: BrowserWindow | null = null;
+interface SlideshowSettings {
+  photoDisplaySeconds: number;
+  videoDisplaySeconds: number;
+  playVideoToEnd: boolean;
+  transitionDuration: number;
+  enableKenBurns: boolean;
+  kenBurnsDuration: number;
+}
+
 let configManager: {
   setSelectedFolder: (path: string) => void;
   getSelectedFolder: () => string | undefined;
   setWindowState: (state: { width?: number; height?: number; x?: number; y?: number }) => void;
   getWindowState: () => { width?: number; height?: number; x?: number; y?: number } | undefined;
+  getSlideshowSettings: () => SlideshowSettings | null;
+  setSlideshowSettings: (settings: SlideshowSettings) => void;
 };
 
 function createWindow(): void {
@@ -228,4 +239,12 @@ ipcMain.handle('open-in-finder', async (_event, filePath: string) => {
       error: error instanceof Error ? error.message : String(error),
     };
   }
+});
+
+ipcMain.handle('get-slideshow-settings', async () => {
+  return configManager.getSlideshowSettings();
+});
+
+ipcMain.handle('set-slideshow-settings', async (_event, settings: SlideshowSettings) => {
+  configManager.setSlideshowSettings(settings);
 });

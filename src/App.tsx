@@ -4,6 +4,7 @@ import { usePlatformDetection } from '@/hooks/usePlatformDetection';
 import { useMediaLoader } from '@/hooks/useMediaLoader';
 import { useFolderManager } from '@/hooks/useFolderManager';
 import { useMediaFilter } from '@/hooks/useMediaFilter';
+import { usePersistedSlideshowConfig } from '@/hooks/usePersistedSlideshowConfig';
 import { LoadingState } from '@/components/AppStates/LoadingState';
 import { ErrorState } from '@/components/AppStates/ErrorState';
 import { NoMediaState } from '@/components/AppStates/NoMediaState';
@@ -30,6 +31,7 @@ export default function App() {
     clearSavedFolder,
   } = useFolderManager();
   const { filter, setFilter } = useMediaFilter(MediaFilter.ALL);
+  const { config: slideshowConfig, setConfig: setSlideshowConfig } = usePersistedSlideshowConfig();
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -150,6 +152,8 @@ export default function App() {
     <div className="relative">
       <Slideshow
         mediaFiles={mediaFiles}
+        config={slideshowConfig}
+        onConfigChange={setSlideshowConfig}
         selectedFolder={selectedFolder}
         onChangeFolder={() => setSelectedFolder(null)}
         onClearSavedFolder={handleClearSavedFolder}

@@ -14,6 +14,7 @@ import ConfigPanel from './ConfigPanel';
 interface SlideshowProps {
   mediaFiles: MediaFile[];
   config?: Partial<typeof DEFAULT_CONFIG>;
+  onConfigChange?: (config: SlideshowConfig) => void;
   selectedFolder?: string | null;
   onChangeFolder?: () => void;
   onClearSavedFolder?: () => void;
@@ -25,6 +26,7 @@ interface SlideshowProps {
 const Slideshow: React.FC<SlideshowProps> = ({
   mediaFiles,
   config = DEFAULT_CONFIG,
+  onConfigChange,
   selectedFolder,
   onChangeFolder,
   onClearSavedFolder,
@@ -39,6 +41,10 @@ const Slideshow: React.FC<SlideshowProps> = ({
     ...DEFAULT_CONFIG,
     ...config,
   });
+
+  useEffect(() => {
+    setSlideshowConfig({ ...DEFAULT_CONFIG, ...config });
+  }, [config]);
 
   // Filter media files directly using the prop
   const filteredFiles = useMemo(() => filterMediaFiles(mediaFiles, mediaFilter), [mediaFiles, mediaFilter]);
@@ -94,11 +100,12 @@ const Slideshow: React.FC<SlideshowProps> = ({
 
   const handleConfigChange = useCallback((newConfig: SlideshowConfig) => {
     setSlideshowConfig(newConfig);
+    onConfigChange?.(newConfig);
     if (currentMedia) {
       const newDisplayTime = getDisplayTime(currentMedia, newConfig);
       setTimeRemaining(newDisplayTime);
     }
-  }, [currentMedia, setTimeRemaining]);
+  }, [currentMedia, setTimeRemaining, onConfigChange]);
 
   const openInFinder = useCallback(async () => {
     if (!currentMedia) return;
