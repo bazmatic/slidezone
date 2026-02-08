@@ -3,6 +3,7 @@ console.log('Preload script process.type:', process.type);
 
 const { contextBridge, ipcRenderer } = require('electron');
 
+
 console.log('=== PRELOAD SCRIPT STARTING ===');
 console.log('Electron modules loaded successfully');
 
@@ -30,6 +31,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clearSavedFolder: () => {
     console.log('clearSavedFolder called');
     return ipcRenderer.invoke('clear-saved-folder');
+  },
+  openInFinder: (filePath) => {
+    console.log('openInFinder called with:', filePath);
+    return ipcRenderer.invoke('open-in-finder', filePath);
   }
 });
 

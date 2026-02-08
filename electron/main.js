@@ -54,17 +54,21 @@ function createWindow() {
   
   if (isDev) {
     console.log('Loading development URL...');
-    mainWindow.loadURL('http://localhost:3000');
+    mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    console.log('Loading production file...');
-    // Use the simple HTML file instead of the complex Next.js build
-    const filePath = path.join(__dirname, 'index.html');
-    console.log('File path:', filePath);
-    mainWindow.loadFile(filePath);
+    console.log('Loading production build...');
+    // Use the built Vite app from the dist directory
+    const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
+    console.log('Production file path:', indexPath);
     
-    // Open dev tools in production to debug preload script issues
-    mainWindow.webContents.openDevTools();
+    if (require('fs').existsSync(indexPath)) {
+      mainWindow.loadFile(indexPath);
+    } else {
+      console.log('Built app not found, falling back to simple HTML');
+      const filePath = path.join(__dirname, 'index.html');
+      mainWindow.loadFile(filePath);
+    }
   }
 
   mainWindow.once('ready-to-show', () => {
@@ -250,6 +254,29 @@ ipcMain.handle('read-media-folder', async (event, folderPath) => {
       error: 'Failed to read media folder',
       files: [],
       count: 0
+    };
+  }
+});
+
+
+// Open file in Finder
+ipcMain.handle('open-in-finder', async (event, filePath) => {
+  console.log('open-in-finder IPC called with:', filePath);
+  try {
+    const { shell } = require('electron');
+    
+    // Use shell.showItemInFolder to open the file in Finder
+    shell.showItemInFolder(filePath);
+    
+    return {
+      success: true,
+      message: 'File opened in Finder'
+    };
+  } catch (error) {
+    console.error('Error opening file in Finder:', error);
+    return {
+      success: false,
+      error: error.message
     };
   }
 }); 
