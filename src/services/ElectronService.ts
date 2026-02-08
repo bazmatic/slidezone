@@ -15,6 +15,7 @@ export interface ElectronService {
     message?: string;
     error?: string;
   }>;
+  getSplashUrl(): string;
   isAvailable(): boolean;
 }
 

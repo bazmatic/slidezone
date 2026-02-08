@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { MediaFilter } from '@/types/media';
 import { usePlatformDetection } from '@/hooks/usePlatformDetection';
 import { useMediaLoader } from '@/hooks/useMediaLoader';
@@ -9,8 +9,10 @@ import { ErrorState } from '@/components/AppStates/ErrorState';
 import { NoMediaState } from '@/components/AppStates/NoMediaState';
 import FolderSelector from '@/components/FolderSelector';
 import Slideshow from '@/components/Slideshow';
+import { SplashScreen } from '@/components/SplashScreen';
 
 export default function App() {
+  const [splashDone, setSplashDone] = useState(false);
   const { isElectron, isInitialized } = usePlatformDetection();
   const {
     mediaFiles,
@@ -75,6 +77,10 @@ export default function App() {
     }
   }, [isElectron, selectedFolder, setError, loadMediaFromAPI, loadMediaFromFolder, checkForSavedFolder]);
 
+  if (isElectron && !splashDone) {
+    return <SplashScreen onDone={() => setSplashDone(true)} />;
+  }
+
   if (!isInitialized) {
     return <LoadingState message="Initializing..." />;
   }
@@ -95,6 +101,14 @@ export default function App() {
       <FolderSelector
         selectedFolder={selectedFolder}
         onFolderSelect={handleFolderSelect}
+        onClose={() => {
+          checkForSavedFolder().then((saved) => {
+            if (saved) {
+              setSelectedFolder(saved);
+              loadMediaFromFolder(saved);
+            }
+          });
+        }}
         isLoading={isLoading}
       />
     );
@@ -136,6 +150,7 @@ export default function App() {
     <div className="relative">
       <Slideshow
         mediaFiles={mediaFiles}
+        selectedFolder={selectedFolder}
         onChangeFolder={() => setSelectedFolder(null)}
         onClearSavedFolder={handleClearSavedFolder}
         isElectron={isElectron}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { PANEL_CLASS, DIALOG_FOOTER_CLASS } from '@/constants/dialogStyles';
 import { Button } from '../ui/Button';
 
 interface ErrorStateProps {
@@ -16,20 +17,18 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
 }) => {
   return (
     <div className="flex items-center justify-center h-screen bg-black text-white">
-      <div className="text-center">
+      <div className={`${PANEL_CLASS} w-full max-w-md mx-4 text-center`}>
         <p className="text-red-400 mb-4">{error}</p>
-        <div className="space-y-2">
-          {onRetry && (
-            <Button onClick={onRetry} className="mr-2">
-              Retry
-            </Button>
-          )}
-          {onSecondaryAction && secondaryActionLabel && (
-            <Button variant="secondary" onClick={onSecondaryAction}>
-              {secondaryActionLabel}
-            </Button>
-          )}
-        </div>
+        {(onRetry || (onSecondaryAction && secondaryActionLabel)) && (
+          <div className={DIALOG_FOOTER_CLASS}>
+            {onSecondaryAction && secondaryActionLabel && (
+              <Button variant="secondary" onClick={onSecondaryAction}>
+                {secondaryActionLabel}
+              </Button>
+            )}
+            {onRetry && <Button variant="primary" onClick={onRetry}>Retry</Button>}
+          </div>
+        )}
       </div>
     </div>
   );

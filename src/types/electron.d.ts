@@ -15,6 +15,7 @@ export interface ElectronAPI {
     message?: string;
     error?: string;
   }>;
+  getSplashUrl: () => string;
 }
 
 declare global {

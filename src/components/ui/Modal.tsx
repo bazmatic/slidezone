@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { PANEL_CLASS } from '@/constants/dialogStyles';
 
 interface ModalProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 ${className}`}
+        className={`${PANEL_CLASS} w-full max-w-md mx-4 ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (

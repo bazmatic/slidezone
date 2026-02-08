@@ -25,9 +25,6 @@ interface ControlsProps {
   timeRemaining: number;
   mediaType: MediaType;
   isShuffled?: boolean;
-  onChangeFolder?: () => void;
-  onClearSavedFolder?: () => void;
-  isElectron?: boolean;
   mediaFilter: MediaFilter;
   onFilterChange: (filter: MediaFilter) => void;
 }
@@ -47,9 +44,6 @@ const Controls: React.FC<ControlsProps> = ({
   timeRemaining,
   mediaType,
   isShuffled = false,
-  onChangeFolder,
-  onClearSavedFolder,
-  isElectron = false,
   mediaFilter,
   onFilterChange,
 }) => {
@@ -69,16 +63,6 @@ const Controls: React.FC<ControlsProps> = ({
             {/* Control Buttons */}
             <div className="flex flex-col items-start space-y-2">
               <button
-                onClick={onPrevious}
-                className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all focus:outline-none focus:ring-1 focus:ring-white/25"
-                title={tooltipWithShortcut('Previous', KeyboardShortcut.PREVIOUS)}
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                </svg>
-              </button>
-
-              <button
                 onClick={onPlayPause}
                 className="p-3 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all focus:outline-none focus:ring-1 focus:ring-white/25"
                 title={tooltipWithShortcut(isPlaying ? 'Pause' : 'Play', KeyboardShortcut.PLAY_PAUSE)}
@@ -92,6 +76,16 @@ const Controls: React.FC<ControlsProps> = ({
                     <path d="M8 5v14l11-7z"/>
                   </svg>
                 )}
+              </button>
+
+              <button
+                onClick={onPrevious}
+                className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all focus:outline-none focus:ring-1 focus:ring-white/25"
+                title={tooltipWithShortcut('Previous', KeyboardShortcut.PREVIOUS)}
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
               </button>
 
               <button
@@ -121,8 +115,6 @@ const Controls: React.FC<ControlsProps> = ({
                   </svg>
                 )}
               </button>
-
-              <div className="w-8 h-px bg-white bg-opacity-30"></div>
 
               <button
                 onClick={onShuffle}
@@ -162,36 +154,6 @@ const Controls: React.FC<ControlsProps> = ({
                   <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>
                 </svg>
               </button>
-
-              {/* Folder Management Buttons - Only show in Electron mode */}
-              {isElectron && onChangeFolder && onClearSavedFolder && (
-                <>
-                  <div className="w-8 h-px bg-white bg-opacity-30"></div>
-                  
-                  <button
-                    onClick={onChangeFolder}
-                    className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all focus:outline-none focus:ring-1 focus:ring-white/25"
-                    title={tooltipWithShortcut('Change Folder', undefined)}
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
-                      <path d="M12 8l4 4-4 4-1.41-1.41L12.17 13H8v-2h4.17l-1.58-1.59L12 8z" fill="currentColor"/>
-                    </svg>
-                  </button>
-
-                  <button
-                    onClick={onClearSavedFolder}
-                    className="p-2 rounded-full bg-red-600 bg-opacity-60 hover:bg-opacity-80 transition-all focus:outline-none focus:ring-1 focus:ring-white/25"
-                    title={tooltipWithShortcut('Clear Saved Folder', undefined)}
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                    </svg>
-                  </button>
-                </>
-              )}
-
-              <div className="w-8 h-px bg-white bg-opacity-30"></div>
 
               <button
                 onClick={onSettings}

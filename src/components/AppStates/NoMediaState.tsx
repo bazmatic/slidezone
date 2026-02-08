@@ -1,4 +1,5 @@
 import React from 'react';
+import { PANEL_CLASS, DIALOG_FOOTER_CLASS } from '@/constants/dialogStyles';
 import { Button } from '../ui/Button';
 
 interface NoMediaStateProps {
@@ -9,6 +10,8 @@ interface NoMediaStateProps {
   onSecondaryAction?: () => void;
   secondaryActionLabel?: string;
   selectedFolder?: string | null;
+  /** When true, action buttons are centred instead of right-aligned. */
+  centerActions?: boolean;
 }
 
 export const NoMediaState: React.FC<NoMediaStateProps> = ({
@@ -19,10 +22,14 @@ export const NoMediaState: React.FC<NoMediaStateProps> = ({
   onSecondaryAction,
   secondaryActionLabel,
   selectedFolder,
+  centerActions = false,
 }) => {
+  const footerClass = centerActions
+    ? 'flex justify-center gap-2 mt-6'
+    : DIALOG_FOOTER_CLASS;
   return (
     <div className="flex items-center justify-center h-screen bg-black text-white">
-      <div className="text-center">
+      <div className={`${PANEL_CLASS} w-full max-w-md mx-4 text-center`}>
         <p className="mb-4">{message}</p>
         {subMessage && <p className="text-sm text-gray-400 mb-4">{subMessage}</p>}
         {selectedFolder && (
@@ -31,15 +38,15 @@ export const NoMediaState: React.FC<NoMediaStateProps> = ({
           </p>
         )}
         {(onPrimaryAction || onSecondaryAction) && (
-          <div className="space-y-2">
-            {onPrimaryAction && primaryActionLabel && (
-              <Button onClick={onPrimaryAction} className="mr-2">
-                {primaryActionLabel}
-              </Button>
-            )}
+          <div className={footerClass}>
             {onSecondaryAction && secondaryActionLabel && (
               <Button variant="secondary" onClick={onSecondaryAction}>
                 {secondaryActionLabel}
+              </Button>
+            )}
+            {onPrimaryAction && primaryActionLabel && (
+              <Button variant="primary" onClick={onPrimaryAction}>
+                {primaryActionLabel}
               </Button>
             )}
           </div>
