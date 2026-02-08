@@ -10,6 +10,7 @@ import { platformService } from '@/services/PlatformService';
 import MediaDisplay from './MediaDisplay';
 import Controls from './Controls';
 import ConfigPanel from './ConfigPanel';
+import { Modal } from './ui/Modal';
 
 interface SlideshowProps {
   mediaFiles: MediaFile[];
@@ -37,6 +38,8 @@ const Slideshow: React.FC<SlideshowProps> = ({
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [isMuted, setIsMuted] = useState<boolean>(true);
   const [isConfigPanelOpen, setIsConfigPanelOpen] = useState<boolean>(false);
+  const [promptMetadata, setPromptMetadata] = useState<{ promptText: string } | null>(null);
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState<boolean>(false);
   const [slideshowConfig, setSlideshowConfig] = useState<SlideshowConfig>({
     ...DEFAULT_CONFIG,
     ...config,
@@ -85,6 +88,35 @@ const Slideshow: React.FC<SlideshowProps> = ({
       prevDisplayOrderRef.current = displayOrder;
     }
   }, [mediaFiles.length, mediaFilter, displayOrder, filteredFiles.length]);
+
+  useEffect(() => {
+    if (!currentMedia || !isElectron) {
+      setPromptMetadata(null);
+      setIsPromptModalOpen(false);
+      return;
+    }
+    const electronService = platformService.getElectronService();
+    if (!electronService) {
+      setPromptMetadata(null);
+      return;
+    }
+    let cancelled = false;
+    electronService.getMediaMetadata(currentMedia.path).then((result) => {
+      if (cancelled) return;
+      if (result.hasPrompt && result.promptText) {
+        setPromptMetadata({ promptText: result.promptText });
+      } else {
+        setPromptMetadata(null);
+        setIsPromptModalOpen(false);
+      }
+    }).catch(() => {
+      if (!cancelled) {
+        setPromptMetadata(null);
+        setIsPromptModalOpen(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [currentMedia, isElectron]);
 
   const togglePlayPause = useCallback(() => {
     setIsPlaying(prev => !prev);
@@ -192,6 +224,30 @@ const Slideshow: React.FC<SlideshowProps> = ({
         onChangeFolder={onChangeFolder}
         onClearSavedFolder={onClearSavedFolder}
       />
+
+      {promptMetadata && (
+        <button
+          type="button"
+          onClick={() => setIsPromptModalOpen(true)}
+          className="absolute left-4 bottom-4 z-30 px-3 py-2 rounded bg-black/60 text-white/80 text-sm hover:bg-black/80 hover:text-white transition-colors"
+          title="Show prompt"
+        >
+          Prompt
+        </button>
+      )}
+
+      <Modal
+        isOpen={isPromptModalOpen}
+        onClose={() => setIsPromptModalOpen(false)}
+        title="Prompt"
+        className="max-w-2xl"
+      >
+        {promptMetadata && (
+          <pre className="whitespace-pre-wrap break-words text-sm text-white/90 max-h-[70vh] overflow-auto font-sans">
+            {promptMetadata.promptText}
+          </pre>
+        )}
+      </Modal>
     </div>
   );
 };

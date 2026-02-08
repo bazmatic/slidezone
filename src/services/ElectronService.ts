@@ -16,6 +16,7 @@ export interface ElectronService {
     error?: string;
   }>;
   getSplashUrl(): string;
+  getMediaMetadata(filePath: string): Promise<{ hasPrompt: boolean; promptText?: string }>;
   getSlideshowSettings(): Promise<SlideshowConfig | null>;
   setSlideshowSettings(settings: SlideshowConfig): Promise<void>;
   isAvailable(): boolean;

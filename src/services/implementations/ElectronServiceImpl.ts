@@ -68,6 +68,13 @@ export class ElectronServiceImpl implements ElectronService {
     return window.electronAPI?.getSplashUrl?.() ?? '';
   }
 
+  async getMediaMetadata(filePath: string): Promise<{ hasPrompt: boolean; promptText?: string }> {
+    if (!this.isAvailable() || !window.electronAPI!.getMediaMetadata) {
+      return { hasPrompt: false };
+    }
+    return window.electronAPI!.getMediaMetadata(filePath);
+  }
+  
   async getSlideshowSettings(): Promise<SlideshowConfig | null> {
     if (!this.isAvailable()) return null;
     return window.electronAPI!.getSlideshowSettings();

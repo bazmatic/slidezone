@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, protocol, shell } from 'electron';
 import path from 'path';
 import fs from 'fs/promises';
+import zlib from 'zlib';
 import { getMediaTypeFromExtension } from '../src/utils/mediaLoader';
 import type { MediaFile } from '../src/types/media';
 
@@ -224,6 +225,109 @@ ipcMain.handle('read-media-folder', async (_event, folderPath: string) => {
       files: [],
       count: 0,
     };
+  }
+});
+
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const TEXt_TYPE = 0x74455874;   // 'tEXt'
+const ZTXt_TYPE = 0x7a545874;   // 'zTXt'
+const ITXt_TYPE = 0x69545874;   // 'iTXt'
+const PROMPT_KEYWORDS = ['parameters', 'prompt'] as const;
+
+function parseTextChunk(data: Buffer, keyword: string, decompress: boolean, encoding: 'latin1' | 'utf8' = 'latin1'): string | null {
+  if (!PROMPT_KEYWORDS.includes(keyword as typeof PROMPT_KEYWORDS[number])) return null;
+  let raw: Buffer;
+  if (decompress) {
+    try {
+      raw = zlib.inflateSync(data);
+    } catch {
+      return null;
+    }
+  } else {
+    raw = data;
+  }
+  const value = (encoding === 'utf8' ? raw.toString('utf8') : raw.toString('latin1')).trim();
+  return value.length > 0 ? value : null;
+}
+
+function extractPngParameters(buffer: Buffer): string | null {
+  if (buffer.length < 8 + 12) return null;
+  if (!buffer.subarray(0, 8).equals(PNG_SIGNATURE)) return null;
+  let parametersValue: string | null = null;
+  let promptValue: string | null = null;
+  let offset = 8;
+  while (offset + 12 <= buffer.length) {
+    const length = buffer.readUInt32BE(offset);
+    const type = buffer.readUInt32BE(offset + 4);
+    const dataStart = offset + 8;
+    const dataEnd = dataStart + length;
+    if (dataEnd + 4 > buffer.length) break;
+    offset = dataEnd + 4; // skip CRC
+
+    const data = buffer.subarray(dataStart, dataEnd);
+    if (type === TEXt_TYPE && length >= 2) {
+      const nul = data.indexOf(0);
+      if (nul <= 0) continue;
+      const keyword = data.subarray(0, nul).toString('latin1');
+      const value = parseTextChunk(data.subarray(nul + 1), keyword, false);
+      if (value !== null) {
+        if (keyword === 'parameters') parametersValue = value;
+        else if (keyword === 'prompt') promptValue = promptValue ?? value;
+      }
+    } else if (type === ZTXt_TYPE && length >= 3) {
+      const nul = data.indexOf(0);
+      if (nul <= 0 || nul + 2 > data.length) continue;
+      const keyword = data.subarray(0, nul).toString('latin1');
+      const compMethod = data[nul + 1];
+      if (compMethod !== 0) continue;
+      const value = parseTextChunk(data.subarray(nul + 2), keyword, true, 'utf8');
+      if (value !== null) {
+        if (keyword === 'parameters') parametersValue = value;
+        else if (keyword === 'prompt') promptValue = promptValue ?? value;
+      }
+    } else if (type === ITXt_TYPE && length >= 5) {
+      const nul = data.indexOf(0);
+      if (nul <= 0 || nul + 5 > data.length) continue;
+      const keyword = data.subarray(0, nul).toString('latin1');
+      if (!PROMPT_KEYWORDS.includes(keyword as typeof PROMPT_KEYWORDS[number])) continue;
+      const compFlag = data[nul + 1];
+      const compMethod = data[nul + 2];
+      const rest = data.subarray(nul + 3);
+      const langEnd = rest.indexOf(0);
+      if (langEnd < 0) continue;
+      const afterLang = rest.subarray(langEnd + 1);
+      const tkeyEnd = afterLang.indexOf(0);
+      if (tkeyEnd < 0) continue;
+      const valueBytes = afterLang.subarray(tkeyEnd + 1);
+      let value: string;
+      if (compFlag === 1 && compMethod === 0) {
+        try {
+          value = zlib.inflateSync(valueBytes).toString('utf8').trim();
+        } catch {
+          continue;
+        }
+      } else {
+        value = valueBytes.toString('utf8').trim();
+      }
+      if (value.length > 0) {
+        if (keyword === 'parameters') parametersValue = value;
+        else if (keyword === 'prompt') promptValue = promptValue ?? value;
+      }
+    }
+  }
+  return parametersValue ?? promptValue;
+}
+
+ipcMain.handle('get-media-metadata', async (_event, filePath: string): Promise<{ hasPrompt: boolean; promptText?: string }> => {
+  try {
+    const ext = path.extname(filePath).toLowerCase();
+    if (ext !== '.png') return { hasPrompt: false };
+    const buffer = await fs.readFile(filePath);
+    const promptText = extractPngParameters(buffer);
+    if (promptText === null) return { hasPrompt: false };
+    return { hasPrompt: true, promptText };
+  } catch {
+    return { hasPrompt: false };
   }
 });
 
