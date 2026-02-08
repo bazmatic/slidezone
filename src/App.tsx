@@ -55,9 +55,9 @@ export default function App() {
   }, [isInitialized, isElectron, checkForSavedFolder, loadMediaFromAPI, loadMediaFromFolder]);
 
   const handleFolderSelect = useCallback(
-    async (folderPath: string) => {
+    async (folderPath: string, forceReload: boolean = false) => {
       setSelectedFolder(folderPath);
-      await loadMediaFromFolder(folderPath);
+      await loadMediaFromFolder(folderPath, forceReload);
     },
     [setSelectedFolder, loadMediaFromFolder]
   );
@@ -121,7 +121,7 @@ export default function App() {
       <NoMediaState
         message="No media files found in selected folder"
         subMessage={`Selected folder: ${selectedFolder}`}
-        onPrimaryAction={() => handleFolderSelect(selectedFolder)}
+        onPrimaryAction={() => handleFolderSelect(selectedFolder, true)}
         primaryActionLabel="Reload Folder"
         onSecondaryAction={() => setSelectedFolder(null)}
         secondaryActionLabel="Choose Different Folder"
