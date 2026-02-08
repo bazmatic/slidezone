@@ -15,11 +15,16 @@ export function useSlideshowNavigation(
   // Use refs to avoid recreating callbacks when files/config change
   const filesRef = useRef(files);
   const configRef = useRef(config);
-  
+  const currentMediaRef = useRef<MediaFile | null>(currentMedia);
+
   useEffect(() => {
     filesRef.current = files;
     configRef.current = config;
   }, [files, config]);
+
+  useEffect(() => {
+    currentMediaRef.current = currentMedia;
+  }, [currentMedia]);
 
   // Track previous files to detect actual changes
   const prevFilesIdsRef = useRef<string>('');
@@ -28,24 +33,33 @@ export function useSlideshowNavigation(
     const currentFilesIds = files.map(f => f.id).join(',');
     const filesChanged = prevFilesIdsRef.current !== currentFilesIds;
     
-    // Only reset if files actually changed (different IDs or length)
     if (filesChanged) {
       if (files.length > 0) {
-        // Check if current index is still valid
-        setCurrentIndex(prev => {
-          if (prev >= files.length) {
-            // Index out of bounds, reset to 0
-            const media = files[0];
+        const mediaToKeep = currentMediaRef.current;
+        const indexOfCurrent =
+          mediaToKeep !== null
+            ? files.findIndex((f) => f.id === mediaToKeep.id)
+            : -1;
+
+        if (indexOfCurrent >= 0) {
+          const media = files[indexOfCurrent];
+          setCurrentIndex(indexOfCurrent);
+          setCurrentMedia(media);
+          setTimeRemaining(getDisplayTime(media, config));
+        } else {
+          setCurrentIndex(prev => {
+            if (prev >= files.length) {
+              const media = files[0];
+              setCurrentMedia(media || null);
+              setTimeRemaining(getDisplayTime(media || null, config));
+              return 0;
+            }
+            const media = files[prev];
             setCurrentMedia(media || null);
             setTimeRemaining(getDisplayTime(media || null, config));
-            return 0;
-          }
-          // Index is still valid, update media for current index
-          const media = files[prev];
-          setCurrentMedia(media || null);
-          setTimeRemaining(getDisplayTime(media || null, config));
-          return prev;
-        });
+            return prev;
+          });
+        }
       } else {
         setCurrentIndex(0);
         setCurrentMedia(null);
@@ -105,6 +119,16 @@ export function useSlideshowNavigation(
     updateCurrentMedia(0);
   }, [updateCurrentMedia]);
 
+  const goToMedia = useCallback((media: MediaFile | null) => {
+    const currentFiles = filesRef.current;
+    if (media === null || currentFiles.length === 0) {
+      updateCurrentMedia(0);
+      return;
+    }
+    const index = currentFiles.findIndex((f) => f.id === media.id);
+    updateCurrentMedia(index >= 0 ? index : 0);
+  }, [updateCurrentMedia]);
+
   return {
     currentIndex,
     currentMedia,
@@ -113,6 +137,7 @@ export function useSlideshowNavigation(
     nextSlide,
     previousSlide,
     goToSlide,
+    goToMedia,
     reset,
   };
 }

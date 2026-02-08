@@ -16,57 +16,52 @@ function sortReverseAlphabetical(files: MediaFile[]): MediaFile[] {
   );
 }
 
-interface SortCache {
-  alphabetical: MediaFile[] | null;
-  reverseAlphabetical: MediaFile[] | null;
-  originalFilesRef: MediaFile[] | null;
+interface OrderCache {
+  none: MediaFile[];
+  random: MediaFile[];
+  alphabetical: MediaFile[];
+  reverseAlphabetical: MediaFile[];
+}
+
+function buildOrderCache(files: MediaFile[]): OrderCache {
+  return {
+    none: [...files],
+    random: shuffleArray([...files]),
+    alphabetical: sortAlphabetical(files),
+    reverseAlphabetical: sortReverseAlphabetical(files),
+  };
 }
 
 export function useDisplayOrder(originalFiles: MediaFile[]) {
   const [displayOrder, setDisplayOrder] = useState<DisplayOrder>(DisplayOrder.NONE);
   const [orderedFiles, setOrderedFiles] = useState<MediaFile[]>(() => [...originalFiles]);
-  const cacheRef = useRef<SortCache>({
-    alphabetical: null,
-    reverseAlphabetical: null,
-    originalFilesRef: null,
-  });
+  const cacheRef = useRef<OrderCache | null>(null);
+  const originalFilesRef = useRef<MediaFile[]>(originalFiles);
 
-  // Compute orderedFiles after paint so the icon updates first; use cache when available.
+  // Rebuild cache when file list identity changes; then apply current display order from cache.
   useEffect(() => {
-    const cache = cacheRef.current;
-    if (originalFiles !== cache.originalFilesRef) {
-      cache.alphabetical = null;
-      cache.reverseAlphabetical = null;
-      cache.originalFilesRef = originalFiles;
+    if (originalFiles !== originalFilesRef.current) {
+      originalFilesRef.current = originalFiles;
+      cacheRef.current = buildOrderCache(originalFiles);
     }
+    const cache = cacheRef.current ?? buildOrderCache(originalFiles);
+    if (cacheRef.current === null) cacheRef.current = cache;
 
     switch (displayOrder) {
       case DisplayOrder.NONE:
-        setOrderedFiles([...originalFiles]);
+        setOrderedFiles(cache.none);
         break;
       case DisplayOrder.RANDOM:
-        setOrderedFiles(shuffleArray(originalFiles));
+        setOrderedFiles(cache.random);
         break;
       case DisplayOrder.ALPHABETICAL:
-        if (cache.alphabetical !== null) {
-          setOrderedFiles(cache.alphabetical);
-        } else {
-          const sorted = sortAlphabetical(originalFiles);
-          cache.alphabetical = sorted;
-          setOrderedFiles(sorted);
-        }
+        setOrderedFiles(cache.alphabetical);
         break;
       case DisplayOrder.REVERSE_ALPHABETICAL:
-        if (cache.reverseAlphabetical !== null) {
-          setOrderedFiles(cache.reverseAlphabetical);
-        } else {
-          const sorted = sortReverseAlphabetical(originalFiles);
-          cache.reverseAlphabetical = sorted;
-          setOrderedFiles(sorted);
-        }
+        setOrderedFiles(cache.reverseAlphabetical);
         break;
       default:
-        setOrderedFiles([...originalFiles]);
+        setOrderedFiles(cache.none);
     }
   }, [displayOrder, originalFiles]);
 
