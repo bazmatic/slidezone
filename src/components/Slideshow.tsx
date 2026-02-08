@@ -60,10 +60,11 @@ const Slideshow: React.FC<SlideshowProps> = ({
     setTimeRemaining,
     nextSlide,
     previousSlide,
+    goToMedia,
     reset: resetNavigation,
   } = useSlideshowNavigation(orderedFiles, slideshowConfig);
 
-  // Reset navigation when files, filter, or display order change
+  // When files or filter change: reset to start. When only display order changes: keep current file selected.
   const prevFilesLengthRef = React.useRef<number>(mediaFiles.length);
   const prevFilterRef = React.useRef<MediaFilter>(mediaFilter);
   const prevDisplayOrderRef = React.useRef<DisplayOrder>(displayOrder);
@@ -81,13 +82,19 @@ const Slideshow: React.FC<SlideshowProps> = ({
     if (filesLengthChanged || filterChanged || displayOrderChanged) {
       if (filesLengthChanged || filterChanged) {
         console.log(`[Slideshow] Filter or files changed: filter=${mediaFilter}, filesLength=${mediaFiles.length}, filteredLength=${filteredFiles.length}`);
+        resetNavigationRef.current();
+      } else if (displayOrderChanged) {
+        if (currentMedia !== null) {
+          goToMedia(currentMedia);
+        } else {
+          resetNavigationRef.current();
+        }
       }
-      resetNavigationRef.current();
       prevFilesLengthRef.current = mediaFiles.length;
       prevFilterRef.current = mediaFilter;
       prevDisplayOrderRef.current = displayOrder;
     }
-  }, [mediaFiles.length, mediaFilter, displayOrder, filteredFiles.length]);
+  }, [mediaFiles.length, mediaFilter, displayOrder, filteredFiles.length, currentMedia, goToMedia]);
 
   useEffect(() => {
     if (!currentMedia || !isElectron) {

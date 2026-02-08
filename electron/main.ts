@@ -126,11 +126,31 @@ function createWindow(): void {
 app.whenReady().then(() => {
   console.log('App ready, registering protocols...');
 
+  const MEDIA_MIME_TYPES: Record<string, string> = {
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.gif': 'image/gif',
+    '.bmp': 'image/bmp',
+    '.webp': 'image/webp',
+    '.mp4': 'video/mp4',
+    '.webm': 'video/webm',
+    '.ogg': 'video/ogg',
+    '.mov': 'video/quicktime',
+    '.avi': 'video/x-msvideo',
+  };
+
   protocol.registerFileProtocol('media', (request, callback) => {
-    const urlPath = request.url.replace('media://', '');
+    const urlPath = request.url.replace(/^media:\/\//, '');
     const decodedPath = decodeURIComponent(urlPath);
-    console.log('Media protocol request:', request.url, '->', decodedPath);
-    callback(decodedPath);
+    const ext = path.extname(decodedPath).toLowerCase();
+    const mimeType = MEDIA_MIME_TYPES[ext];
+    console.log('Media protocol request:', request.url, '->', decodedPath, mimeType ?? '');
+    if (mimeType) {
+      callback({ path: decodedPath, mimeType });
+    } else {
+      callback(decodedPath);
+    }
   });
 
   protocol.registerFileProtocol('app-assets', (request, callback) => {
@@ -214,7 +234,7 @@ ipcMain.handle('read-media-folder', async (_event, folderPath: string) => {
       }
     }
 
-    mediaFiles.sort((a, b) => a.name.localeCompare(b.name));
+    mediaFiles.sort((a, b) => new Date(b.mtime!).getTime() - new Date(a.mtime!).getTime());
     console.log(`Found ${mediaFiles.length} media files`);
     return { success: true, files: mediaFiles, count: mediaFiles.length };
   } catch (error) {
