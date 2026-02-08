@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SlideshowConfig } from '@/types/media';
+import { DEFAULT_VIDEO_DISPLAY_SECONDS } from '@/constants/config';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 
@@ -59,10 +60,28 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
               value={localConfig.videoDisplaySeconds}
               onChange={(e) => setLocalConfig(prev => ({
                 ...prev,
-                videoDisplaySeconds: parseInt(e.target.value) || 10
+                videoDisplaySeconds: parseInt(e.target.value) || DEFAULT_VIDEO_DISPLAY_SECONDS
               }))}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={localConfig.playVideoToEnd}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
+            <p className="text-xs text-gray-400 mt-1">Ignored when “Play videos to end” is on.</p>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="playVideoToEnd"
+              checked={localConfig.playVideoToEnd}
+              onChange={(e) => setLocalConfig(prev => ({
+                ...prev,
+                playVideoToEnd: e.target.checked
+              }))}
+              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="playVideoToEnd" className="text-sm font-medium text-gray-300">
+              Play videos to end before next item
+            </label>
           </div>
 
           <div>

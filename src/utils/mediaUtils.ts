@@ -4,7 +4,9 @@ export function getDisplayTime(media: MediaFile | null, config: SlideshowConfig)
   if (!media) {
     return config.photoDisplaySeconds;
   }
-  
+  if (media.type === MediaType.VIDEO && config.playVideoToEnd) {
+    return 0;
+  }
   return media.type === MediaType.PHOTO
     ? config.photoDisplaySeconds
     : config.videoDisplaySeconds;

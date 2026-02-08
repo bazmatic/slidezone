@@ -1,8 +1,11 @@
 import { SlideshowConfig } from '@/types/media';
 
+export const DEFAULT_VIDEO_DISPLAY_SECONDS = 10;
+
 export const DEFAULT_CONFIG: SlideshowConfig = {
   photoDisplaySeconds: 10,
-  videoDisplaySeconds: 10,
+  videoDisplaySeconds: DEFAULT_VIDEO_DISPLAY_SECONDS,
+  playVideoToEnd: false,
   transitionDuration: 1000,
   enableKenBurns: true,
   kenBurnsDuration: 5000,
