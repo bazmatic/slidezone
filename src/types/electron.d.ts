@@ -1,4 +1,4 @@
-import { MediaFile } from './media';
+import { MediaFile, SlideshowConfig } from './media';
 
 export interface ElectronAPI {
   selectFolder: () => Promise<string | null>;
@@ -16,6 +16,8 @@ export interface ElectronAPI {
     error?: string;
   }>;
   getSplashUrl: () => string;
+  getSlideshowSettings: () => Promise<SlideshowConfig | null>;
+  setSlideshowSettings: (settings: SlideshowConfig) => Promise<void>;
 }
 
 declare global {

@@ -9,6 +9,13 @@ export enum MediaFilter {
   VIDEOS_ONLY = 'videos_only'
 }
 
+export enum DisplayOrder {
+  NONE = 'none',
+  RANDOM = 'random',
+  ALPHABETICAL = 'alphabetical',
+  REVERSE_ALPHABETICAL = 'reverse_alphabetical',
+}
+
 export interface MediaFile {
   id: string;
   name: string;

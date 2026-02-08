@@ -14,4 +14,7 @@ export const DEFAULT_CONFIG: SlideshowConfig = {
 export const SUPPORTED_PHOTO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
 export const SUPPORTED_VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
 
-export const MEDIA_FOLDER_PATH = '/media'; 
+export const MEDIA_FOLDER_PATH = '/media';
+
+/** localStorage key for slideshow settings (web only). */
+export const SLIDESHOW_SETTINGS_STORAGE_KEY = 'slidezone-slideshow-settings'; 

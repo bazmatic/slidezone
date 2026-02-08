@@ -1,5 +1,5 @@
 import { ElectronService } from '../ElectronService';
-import { MediaFile } from '@/types/media';
+import { MediaFile, SlideshowConfig } from '@/types/media';
 
 export class ElectronServiceImpl implements ElectronService {
   isAvailable(): boolean {
@@ -66,6 +66,16 @@ export class ElectronServiceImpl implements ElectronService {
 
   getSplashUrl(): string {
     return window.electronAPI?.getSplashUrl?.() ?? '';
+  }
+
+  async getSlideshowSettings(): Promise<SlideshowConfig | null> {
+    if (!this.isAvailable()) return null;
+    return window.electronAPI!.getSlideshowSettings();
+  }
+
+  async setSlideshowSettings(settings: SlideshowConfig): Promise<void> {
+    if (!this.isAvailable()) return;
+    await window.electronAPI!.setSlideshowSettings(settings);
   }
 }
 
