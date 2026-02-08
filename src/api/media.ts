@@ -17,7 +17,7 @@ export function getMediaFiles(): { success: boolean; files: MediaFile[]; count: 
     
     console.log(`[getMediaFiles] Found ${fileEntries.length} potential media files`);
     
-    fileEntries.forEach(([filePath, url], index) => {
+    fileEntries.forEach(([filePath]) => {
       const pathParts = filePath.split('/');
       const filename = pathParts[pathParts.length - 1];
       const extension = filename.substring(filename.lastIndexOf('.')).toLowerCase();
@@ -28,7 +28,7 @@ export function getMediaFiles(): { success: boolean; files: MediaFile[]; count: 
         const webPath = filePath.replace('/public', '');
         
         mediaFiles.push({
-          id: `web-file-${index}`,
+          id: webPath,
           name,
           path: webPath,
           type: mediaType,

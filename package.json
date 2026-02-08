@@ -8,17 +8,19 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "electron": "electron .",
+    "build:electron": "node scripts/build-electron.js",
+    "electron": "npm run build:electron && electron .",
     "kill-port": "lsof -ti:5173 | xargs kill -9 2>/dev/null || true",
-    "electron-dev": "npm run kill-port && concurrently \"npm run dev\" \"sleep 3 && electron . --dev\"",
-    "electron-build": "npm run build && electron-builder",
-    "dist": "npm run build && electron-builder --publish=never"
+    "electron-dev": "npm run kill-port && npm run build:electron && concurrently \"npm run dev\" \"sleep 3 && electron . --dev\"",
+    "electron-build": "npm run build && npm run build:electron && electron-builder",
+    "dist": "npm run build && npm run build:electron && electron-builder --publish=never"
   },
   "dependencies": {
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
+    "esbuild": "^0.24.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
