@@ -7,6 +7,7 @@ interface VideoDisplayProps {
   media: MediaFile;
   config: Partial<SlideshowConfig>;
   isPlaying: boolean;
+  isMuted?: boolean;
   onVideoEnd: () => void;
 }
 
@@ -14,6 +15,7 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
   media,
   config,
   isPlaying,
+  isMuted = false,
   onVideoEnd,
 }) => {
   const mediaUrl = convertMediaUrl(media.path);
@@ -33,6 +35,7 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
       loop
       playsInline
       preload="auto"
+      muted={isMuted}
       onError={(e) => {
         console.error('[VideoDisplay] Video element error:', e);
         const video = e.currentTarget;

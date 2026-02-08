@@ -8,9 +8,10 @@ interface MediaDisplayProps {
   onVideoEnd: () => void;
   config: Partial<SlideshowConfig>;
   isPlaying: boolean;
+  isMuted?: boolean;
 }
 
-const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, isPlaying }) => {
+const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, isPlaying, isMuted = false }) => {
   const renderer = mediaRendererFactory.getRenderer(media);
 
   if (!renderer) {
@@ -23,7 +24,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ media, onVideoEnd, config, 
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      {renderer.render({ media, config, isPlaying, onVideoEnd })}
+      {renderer.render({ media, config, isPlaying, isMuted, onVideoEnd })}
     </div>
   );
 };

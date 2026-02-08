@@ -31,6 +31,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
   onFilterChange,
 }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isConfigPanelOpen, setIsConfigPanelOpen] = useState<boolean>(false);
   const [slideshowConfig, setSlideshowConfig] = useState<SlideshowConfig>({
     ...DEFAULT_CONFIG,
@@ -81,6 +82,10 @@ const Slideshow: React.FC<SlideshowProps> = ({
     setIsPlaying(prev => !prev);
   }, []);
 
+  const toggleMute = useCallback(() => {
+    setIsMuted(prev => !prev);
+  }, []);
+
   const handleSettings = useCallback(() => {
     setIsConfigPanelOpen(true);
   }, []);
@@ -120,6 +125,7 @@ const Slideshow: React.FC<SlideshowProps> = ({
       onFilterChange(getNextFilter(mediaFilter));
     },
     onOpenFinder: openInFinder,
+    onMuteToggle: toggleMute,
   });
 
   useSlideshowTimer({
@@ -145,10 +151,13 @@ const Slideshow: React.FC<SlideshowProps> = ({
         onVideoEnd={nextSlide}
         config={slideshowConfig}
         isPlaying={isPlaying}
+        isMuted={isMuted}
       />
 
       <Controls
         isPlaying={isPlaying}
+        isMuted={isMuted}
+        onMuteToggle={toggleMute}
         onPlayPause={togglePlayPause}
         onNext={nextSlide}
         onPrevious={previousSlide}

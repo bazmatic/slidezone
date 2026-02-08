@@ -17,6 +17,7 @@ export class VideoRenderer implements MediaRenderer {
         media={props.media}
         config={props.config}
         isPlaying={props.isPlaying}
+        isMuted={props.isMuted}
         onVideoEnd={props.onVideoEnd}
       />
     );

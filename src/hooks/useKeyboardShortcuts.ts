@@ -8,6 +8,7 @@ interface KeyboardShortcutsConfig {
   onShuffle?: () => void;
   onFilter?: () => void;
   onOpenFinder?: () => void;
+  onMuteToggle?: () => void;
 }
 
 export function useKeyboardShortcuts(config: KeyboardShortcutsConfig) {
@@ -44,6 +45,10 @@ export function useKeyboardShortcuts(config: KeyboardShortcutsConfig) {
           event.preventDefault();
           config.onOpenFinder?.();
           break;
+        case KeyboardShortcut.MUTE:
+          event.preventDefault();
+          config.onMuteToggle?.();
+          break;
       }
     };
 
@@ -58,6 +63,7 @@ export function useKeyboardShortcuts(config: KeyboardShortcutsConfig) {
     config.onShuffle,
     config.onFilter,
     config.onOpenFinder,
+    config.onMuteToggle,
   ]);
 }
 

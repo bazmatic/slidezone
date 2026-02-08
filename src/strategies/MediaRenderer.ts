@@ -5,6 +5,7 @@ export interface MediaRendererProps {
   media: MediaFile;
   config: Partial<SlideshowConfig>;
   isPlaying: boolean;
+  isMuted?: boolean;
   onVideoEnd?: () => void;
 }
 

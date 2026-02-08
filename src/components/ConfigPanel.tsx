@@ -124,7 +124,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
           <Button variant="ghost" onClick={handleReset}>
             Reset
           </Button>
-          <Button variant="primary" onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
+          <Button variant="primary" onClick={handleSave} className="!bg-blue-500 hover:!bg-blue-400 !bg-opacity-100 text-white font-semibold">
             Save
           </Button>
         </div>

@@ -2,7 +2,7 @@ import { SlideshowConfig } from '@/types/media';
 
 export const DEFAULT_CONFIG: SlideshowConfig = {
   photoDisplaySeconds: 10,
-  videoDisplaySeconds: 30,
+  videoDisplaySeconds: 10,
   transitionDuration: 1000,
   enableKenBurns: true,
   kenBurnsDuration: 5000,
