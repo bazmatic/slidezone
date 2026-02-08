@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { platformService } from '@/services/PlatformService';
+import { PANEL_CLASS } from '@/constants/dialogStyles';
 import { LoadingSpinner } from './ui/LoadingSpinner';
+import { Button } from './ui/Button';
 
 interface FolderSelectorProps {
   selectedFolder: string | null;
@@ -64,35 +66,37 @@ const FolderSelector: React.FC<FolderSelectorProps> = ({
         <h1 className="text-3xl font-bold mb-8">SlideZone</h1>
         
         {savedFolder && (
-          <div className="bg-white bg-opacity-10 rounded-lg p-6 mb-6">
-            <h2 className="text-xl mb-4">Use Saved Folder?</h2>
+          <div className={`${PANEL_CLASS} mb-6`}>
+            <h2 className="text-xl font-semibold text-white mb-4">Use Saved Folder?</h2>
             <p className="text-sm text-gray-300 mb-2">Previously selected folder:</p>
             <p className="text-sm bg-black bg-opacity-50 p-2 rounded break-all mb-4">
               {savedFolder}
             </p>
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="success"
                 onClick={handleUseSavedFolder}
                 disabled={isLoading}
-                className="flex-1 px-4 py-2 bg-green-600 bg-opacity-20 rounded hover:bg-opacity-30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1"
               >
                 {isLoading ? 'Loading...' : 'Use This Folder'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={handleSelectFolder}
                 disabled={isLoading}
-                className="flex-1 px-4 py-2 bg-white bg-opacity-20 rounded hover:bg-opacity-30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1"
               >
                 Choose Different
-              </button>
+              </Button>
             </div>
           </div>
         )}
 
         {!savedFolder && (
-          <div className="bg-white bg-opacity-10 rounded-lg p-6 mb-6">
-            <h2 className="text-xl mb-4">Select Media Folder</h2>
-            
+          <div className={`${PANEL_CLASS} mb-6`}>
+            <h2 className="text-xl font-semibold text-white mb-4">Select Media Folder</h2>
+
             {selectedFolder ? (
               <div className="mb-4">
                 <p className="text-sm text-gray-300 mb-2">Selected folder:</p>
@@ -105,21 +109,23 @@ const FolderSelector: React.FC<FolderSelectorProps> = ({
                 Choose a folder containing your photos and videos
               </p>
             )}
-            
-            <button
+
+            <Button
+              variant="primary"
+              size="lg"
               onClick={handleSelectFolder}
               disabled={isLoading}
-              className="w-full px-6 py-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full"
             >
               {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                <span className="flex items-center justify-center gap-2">
+                  <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
                   Loading...
-                </div>
+                </span>
               ) : (
                 'Choose Folder'
               )}
-            </button>
+            </Button>
           </div>
         )}
         

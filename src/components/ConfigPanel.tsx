@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { SlideshowConfig } from '@/types/media';
 import { DEFAULT_VIDEO_DISPLAY_SECONDS } from '@/constants/config';
+import {
+  LABEL_CLASS,
+  LABEL_INLINE_CLASS,
+  INPUT_CLASS,
+  CHECKBOX_CLASS,
+  DIALOG_FOOTER_CLASS,
+} from '@/constants/dialogStyles';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 
@@ -33,9 +40,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Photo Display Time (seconds)
-            </label>
+            <label className={LABEL_CLASS}>Photo Display Time (seconds)</label>
             <input
               type="number"
               min="1"
@@ -45,14 +50,12 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 ...prev,
                 photoDisplaySeconds: parseInt(e.target.value) || 5
               }))}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={INPUT_CLASS}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Video Display Time (seconds)
-            </label>
+            <label className={LABEL_CLASS}>Video Display Time (seconds)</label>
             <input
               type="number"
               min="1"
@@ -63,7 +66,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 videoDisplaySeconds: parseInt(e.target.value) || DEFAULT_VIDEO_DISPLAY_SECONDS
               }))}
               disabled={localConfig.playVideoToEnd}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={INPUT_CLASS}
             />
             <p className="text-xs text-gray-400 mt-1">Ignored when “Play videos to end” is on.</p>
           </div>
@@ -77,17 +80,15 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 ...prev,
                 playVideoToEnd: e.target.checked
               }))}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+              className={CHECKBOX_CLASS}
             />
-            <label htmlFor="playVideoToEnd" className="text-sm font-medium text-gray-300">
+            <label htmlFor="playVideoToEnd" className={LABEL_INLINE_CLASS}>
               Play videos to end before next item
             </label>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Transition Duration (milliseconds)
-            </label>
+            <label className={LABEL_CLASS}>Transition Duration (milliseconds)</label>
             <input
               type="number"
               min="0"
@@ -98,7 +99,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 ...prev,
                 transitionDuration: parseInt(e.target.value) || 1000
               }))}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={INPUT_CLASS}
             />
           </div>
 
@@ -111,18 +112,16 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 ...prev,
                 enableKenBurns: e.target.checked
               }))}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+              className={CHECKBOX_CLASS}
             />
-            <label htmlFor="enableKenBurns" className="text-sm font-medium text-gray-300">
+            <label htmlFor="enableKenBurns" className={LABEL_INLINE_CLASS}>
               Enable Ken Burns Effect
             </label>
           </div>
 
           {localConfig.enableKenBurns && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Ken Burns Duration (milliseconds)
-              </label>
+              <label className={LABEL_CLASS}>Ken Burns Duration (milliseconds)</label>
               <input
                 type="number"
                 min="1000"
@@ -133,13 +132,13 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   ...prev,
                   kenBurnsDuration: parseInt(e.target.value) || 5000
                 }))}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={INPUT_CLASS}
               />
             </div>
           )}
         </div>
 
-        <div className="flex justify-end space-x-3 mt-6">
+        <div className={DIALOG_FOOTER_CLASS}>
           <Button variant="ghost" onClick={handleReset}>
             Reset
           </Button>
